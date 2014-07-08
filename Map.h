@@ -53,21 +53,36 @@ namespace Nyan
 		size_t m_row;//y
 		size_t m_col;//z
 
+		int m_tcnt;//TextureCount
 		//void BuildVertexBuffer();//其实不应该把VertexBuffer写到Map中
 	public:
-		void CalcMask();
+		MinimalArrayT< MinimalArrayT< m_block* > > m_FastTable;//为了加快检索效率的表
+		int CalcMask();
 		void ClearMask();
-
 		void ReCalcMask();
-		
-		//void Render(__in float b_x,__in float b_y,__in float b_z,__in float scale);
-
 		void ReCalcBlock(const int&, const int&, const int&);
 
 		void OutBinary(__in bool isSaveMask, __out SaveFormat& bin);
 
 		
-		
+		inline size_t GetX(){ return m_layer; }
+		inline size_t GetY(){ return m_row; }
+		inline size_t GetZ(){ return m_col; }
+
+		//获取纹理总数
+		inline size_t GetT(){ return m_tcnt; }
+
+		void SetT(size_t cnt)
+		{
+			if (cnt < m_tcnt)
+			{
+				::RaiseException(
+					EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
+					EXCEPTION_NONCONTINUABLE,
+					0, NULL); /* ～ fin ～ */
+			}
+			m_FastTable.Fill(cnt - m_tcnt,m_alloc);
+		}
 
 		//实际存储方式为x-y-z形式(z层面上是连续存储的
 		inline m_block& At(const int &x,const int &y,const int &z)
@@ -85,7 +100,7 @@ namespace Nyan
 		Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<m_block>(layer*row*col, alloc), m_layer(layer), m_row(row), m_col(col)
+			MinimalArrayT<m_block>(layer*row*col, alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc)
 		{}
 	};
 	

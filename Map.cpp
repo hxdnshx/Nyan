@@ -8,9 +8,13 @@ void Map3D::ReCalcMask()
 	CalcMask();
 }
 
-void Map3D::CalcMask()
+int Map3D::CalcMask()
 {
-	int x, y, z;
+	int x, y, z,cnt=0;
+	for (x = 0; z < m_tcnt; ++x)
+	{
+		m_FastTable[x].Clear();
+	}
 	for (x = 0; x < m_layer; ++x)
 	{
 		for (y = 0; y < m_row; ++y)
@@ -19,12 +23,16 @@ void Map3D::CalcMask()
 			{
 				if (At(x, y, z).TexType != -1)
 				{
-					if (z < m_col - 1)		At(x, y, z + 1).mask |= Down;
-					if (z > 0)					At(x, y, z - 1).mask |= Up;
-					if (y < m_row - 1)		At(x, y+1, z).mask |= Right;
-					if (y > 0)					At(x, y - 1, z).mask |= Left;
-					if (x < m_layer - 1)	At(x + 1, y, z).mask |= Back;
-					if (x > 0)					At(x - 1, y, z).mask |= Front;
+					if (z < m_col - 1)		(At(x, y, z + 1).mask |= Down),++cnt;
+					if (z > 0)					(At(x, y, z - 1).mask |= Up), ++cnt;
+					if (y < m_row - 1)		(At(x, y + 1, z).mask |= Right), ++cnt;
+					if (y > 0)					(At(x, y - 1, z).mask |= Left), ++cnt;
+					if (x < m_layer - 1)	(At(x + 1, y, z).mask |= Back), ++cnt;
+					if (x > 0)					(At(x - 1, y, z).mask |= Front), ++cnt;
+					if (At(x, y, z).TexType < m_tcnt)
+					{
+						m_FastTable[At(x, y, z).TexType].Push(&At(x, y, z));
+					}
 				}
 			}
 		}
@@ -103,7 +111,7 @@ void Map3D::OutBinary(__in bool isSaveMask, __out SaveFormat& bin)
 }
 
 Map3D::Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin):
-						Minimal::MinimalArrayT<m_block>(alloc)
+Minimal::MinimalArrayT<m_block>(alloc), m_FastTable(alloc), m_tcnt(0)
 {
 	if (bin[0] != 0x2b || bin[1] != 0x54)
 	{
