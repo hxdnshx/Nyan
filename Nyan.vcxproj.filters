@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Nyan.cpp" />
+    <ClCompile Include="dx9.cpp" />
+    <ClCompile Include="dx11.cpp" />
+    <ClCompile Include="opengl.cpp" />
+    <ClCompile Include="imports.cpp" />
+    <ClCompile Include="sensors.cpp" />
+    <ClCompile Include="WP8\wp8.cpp">
+      <Filter>WP8</Filter>
+    </ClCompile>
+    <ClCompile Include="Android\com_nnn_lib.cpp">
+      <Filter>Android</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="Scene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="WP8">
+      <UniqueIdentifier>{bfb9236f-7e41-4226-b871-012d977eddc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{28c80670-00fb-4ee4-a9f1-b4b9e204dd16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Tiles">
+      <UniqueIdentifier>{70a96547-ea2b-4dbe-95b7-e0191b018a37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files">
+      <UniqueIdentifier>{4e8bca26-0f4f-4014-bfee-2261a5c79ec6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Android">
+      <UniqueIdentifier>{8c615286-f41e-4b10-8cb6-dc0405f80f77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk">
+      <UniqueIdentifier>{794331a4-b7cd-4b88-a4f8-aadb6f88a7ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk\src">
+      <UniqueIdentifier>{7ac3fedd-cf31-4722-b933-9662801cdde9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk\src\com">
+      <UniqueIdentifier>{eda5080e-5ba0-462a-8ce9-2ce17fa31aeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk\src\com\nnn">
+      <UniqueIdentifier>{1d91efeb-ec85-4877-a052-a4c31c846eb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk\src\com\nnn\Nyan">
+      <UniqueIdentifier>{48532567-ee5c-4566-a64b-f5d3f124ca05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk\src\com\nnn\lib">
+      <UniqueIdentifier>{6f027d32-69e8-45ee-875d-25fdf50c575d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Nyan.h" />
+    <ClInclude Include="Android\com_nnn_lib.h">
+      <Filter>Android</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="Scene.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
+      <Filter>Assets\Tiles</Filter>
+    </Image>
+    <Image Include="Assets\Tiles\FlipCycleTileMedium.png">
+      <Filter>Assets\Tiles</Filter>
+    </Image>
+    <Image Include="Assets\Tiles\FlipCycleTileSmall.png">
+      <Filter>Assets\Tiles</Filter>
+    </Image>
+    <Image Include="Assets\Tiles\IconicTileMediumLarge.png">
+      <Filter>Assets\Tiles</Filter>
+    </Image>
+    <Image Include="Assets\Tiles\IconicTileSmall.png">
+      <Filter>Assets\Tiles</Filter>
+    </Image>
+    <Image Include="Assets\AlignmentGrid.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\ApplicationIcon.png">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="WMAppManifest.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Files\nnnEngine.whp">
+      <Filter>Files</Filter>
+    </None>
+    <None Include="AndroidApk\src\com\nnn\Nyan\NYANActivity.java">
+      <Filter>AndroidApk\src\com\nnn\Nyan</Filter>
+    </None>
+    <None Include="AndroidApk\src\com\nnn\lib\c_Input.java">
+      <Filter>AndroidApk\src\com\nnn\lib</Filter>
+    </None>
+    <None Include="AndroidApk\src\com\nnn\lib\nnnActivity.java">
+      <Filter>AndroidApk\src\com\nnn\lib</Filter>
+    </None>
+    <None Include="AndroidApk\src\com\nnn\lib\nnnLib.java">
+      <Filter>AndroidApk\src\com\nnn\lib</Filter>
+    </None>
+    <None Include="AndroidApk\src\com\nnn\lib\nnnRenderer.java">
+      <Filter>AndroidApk\src\com\nnn\lib</Filter>
+    </None>
+    <None Include="AndroidApk\src\com\nnn\lib\nnnView.java">
+      <Filter>AndroidApk\src\com\nnn\lib</Filter>
+    </None>
+  </ItemGroup>
+</Project>
