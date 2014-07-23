@@ -383,20 +383,24 @@ namespace Nyan
 		delete map;
 	}
 
-	inline int FitFunc(int x, int y, int z, float ox,float oy, float oz)
+	inline int FitFunc(float x, float y, float z, float ox,float oy, float oz)
 	{
-		return 32768 - (ox - 0.5 - x)*(ox - 0.5 - x) + (oy - 0.5 - y)*(oy - 0.5 - y) + (oz - 0.5 - z)*(oz - 0.5 - z);
+		return 32768 - (ox - 0.5 - x)*(ox - 0.5 - x) - (oy - 0.5 - y)*(oy - 0.5 - y) - (oz - 0.5 - z)*(oz - 0.5 - z);
 	}
 
 	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)
 	{
 		int e_y, e_z;
 		int x,		y,		z;
+		float tx, ty, tz;
 		float ta, tb;
 		int tia, tib;
-		int bx=-1, by=-1, bz=-1;
+		int bx=-1, by=-1, bz=-1, bplane=-1;//best
+		int cplane;//CollisionPlane
 		int fit = 0;
 		int tmp;
+		bool collflag;
+		int i;
 		for (x = 0;  x < map->GetX(); ++x)
 		{
 			ta = src.p1.y + src.n.y*(x - src.p1.x)/(src.n.x); //larger
@@ -451,19 +455,88 @@ namespace Nyan
 				{
 					if (map->At(x, y, z).TexType != -1)
 					{
-						map->At(x, y, z).TexType = 1;
-						if ((tmp = FitFunc(x, y, z, src.p1.x, src.p1.y, src.p1.z)) > fit)
+						collflag = false;
+						//map->At(x, y, z).TexType = 1;
+						for (i = 1; i < Nyan::Direction::Direction_MAX; i <<= 1)
 						{
-							fit = tmp;
-							bx = x;
-							by = y;
-							bz = z;
-							//map->At(x, y, z).TexType = 2;
+							if ((map->At(x, y, z).mask & i) == 0)
+							{
+								switch (i)
+								{
+								case Direction::Up:
+									tz = z + 1;
+									ty = (tz - src.p1.z)*src.n.y / src.n.z + src.p1.y;
+									tx = (tz - src.p1.z)*src.n.x / src.n.z + src.p1.x;
+									if (ty >= y && ty <= (y + 1) && tx >= x && tx <= (x + 1))
+									{
+										collflag = true;
+									}
+									break;
+								case Direction::Down:
+									tz = z;
+									ty = (tz - src.p1.z)*src.n.y / src.n.z + src.p1.y;
+									tx = (tz - src.p1.z)*src.n.x / src.n.z + src.p1.x;
+									if (ty >= y && ty <= (y + 1) && tx >= x && tx <= (x + 1))
+									{
+										collflag = true;
+									}
+									break;
+								case Direction::Left:
+									ty = y;
+									tz = (ty - src.p1.y)*src.n.z / src.n.y + src.p1.z;
+									tx = (ty - src.p1.y)*src.n.x / src.n.y + src.p1.x;
+									if (tz >= z && tz <= (z + 1) && tx >= x && tx <= (x + 1))
+									{
+										collflag = true;
+									}
+									break;
+								case Direction::Right:
+									ty = y+1;
+									tz = (ty - src.p1.y)*src.n.z / src.n.y + src.p1.z;
+									tx = (ty - src.p1.y)*src.n.x / src.n.y + src.p1.x;
+									if (tz >= z && tz <= (z + 1) && tx >= x && tx <= (x + 1))
+									{
+										collflag = true;
+									}
+									break;
+								case Direction::Back:
+									tx = x;
+									tz = (tx - src.p1.x)*src.n.z / src.n.x + src.p1.z;
+									ty = (tx - src.p1.x)*src.n.y / src.n.x + src.p1.y;
+									if (tz >= z&&tz <= (z + 1) && ty >= y && ty <= (y + 1))
+									{
+										collflag = true;
+									}
+									break;
+								case Direction::Front:
+									tx = x+1;
+									tz = (tx - src.p1.x)*src.n.z / src.n.x + src.p1.z;
+									ty = (tx - src.p1.x)*src.n.y / src.n.x + src.p1.y;
+									if (tz >= z&&tz <= (z + 1) && ty >= y && ty <= (y + 1))
+									{
+										collflag = true;
+									}
+									break;
+								}
+								if (collflag)
+								{
+									if ((tmp = FitFunc(tx, ty, tz, src.p1.x, src.p1.y, src.p1.z)) > fit)
+									{
+										fit = tmp;
+										bx = x;
+										by = y;
+										bz = z;
+										bplane = i;
+										//map->At(x, y, z).TexType = 2;
+									}
+									collflag = false;
+								}
+							}
 						}
 					}
 				}
 			}
 		}
-		return DirectX::XMFLOAT4(bx,by,bz,0);
+		return DirectX::XMFLOAT4(bx,by,bz,bplane);
 	}
 }
