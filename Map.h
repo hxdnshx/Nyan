@@ -1,3 +1,5 @@
+#pragma once
+
 #include "MinimalAllocator.hpp"
 
 #define MINIMAL_USE_PROCESSHEAPSTRING
@@ -56,7 +58,10 @@ namespace Nyan
 		int m_tcnt;//TextureCount
 		//void BuildVertexBuffer();//其实不应该把VertexBuffer写到Map中
 	public:
-		MinimalArrayT< MinimalArrayT< m_block* > > m_FastTable;//为了加快检索效率的表
+		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< m_block* > > m_FastTable;//为了加快检索效率的表
+		
+		
+		int CountRect();
 		int CalcMask();
 		void ClearMask();
 		void ReCalcMask();
@@ -74,34 +79,37 @@ namespace Nyan
 
 		void SetT(size_t cnt)
 		{
-			if (cnt < m_tcnt)
+			if (cnt < (size_t)m_tcnt)
 			{
 				::RaiseException(
 					EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			m_FastTable.Fill(cnt - m_tcnt,m_alloc);
+			m_FastTable.Fill(cnt - m_tcnt);
+			m_tcnt = m_FastTable.GetSize();
 		}
 
 		//实际存储方式为x-y-z形式(z层面上是连续存储的
 		inline m_block& At(const int &x,const int &y,const int &z)
 		{
-			if (x < 0 || y < 0 || z < 0 || x >= m_layer || y >= m_row || z >= m_col)
+			if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
 			{
 				::RaiseException(
 					EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			return m_arr[m_layer*m_row*x + m_row*y + z];
+			return m_arr[m_col*m_row*x + m_col*y + z];
 		}
 		
 		Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<m_block>(layer*row*col, alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc)
-		{}
+			MinimalArrayT<m_block>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc)
+		{
+			Fill(layer*row*col, -1,0);
+		}
 	};
 	
 }

@@ -493,6 +493,7 @@
     <ClInclude Include="Nyan.h" />
     <ClInclude Include="Android\com_nnn_lib.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Line.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Condition="'$(Configuration)'=='Debug_wp8' or '$(Configuration)'=='Release_wp8'" Include="platform.winmd">

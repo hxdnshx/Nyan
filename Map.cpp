@@ -10,26 +10,26 @@ void Map3D::ReCalcMask()
 
 int Map3D::CalcMask()
 {
-	int x, y, z,cnt=0;
-	for (x = 0; z < m_tcnt; ++x)
+	int x, y, z,cnt=0,cnt2=0;
+	for (x = 0; x < m_tcnt; ++x)
 	{
 		m_FastTable[x].Clear();
 	}
-	for (x = 0; x < m_layer; ++x)
+	for (x = 0; x < (int)m_layer; ++x)
 	{
-		for (y = 0; y < m_row; ++y)
+		for (y = 0; y < (int)m_row; ++y)
 		{
-			for (z = 0; z < m_col; ++z)
+			for (z = 0; z < (int)m_col; ++z)
 			{
 				if (At(x, y, z).TexType != -1)
 				{
-					if (z < m_col - 1)		(At(x, y, z + 1).mask |= Down),++cnt;
-					if (z > 0)					(At(x, y, z - 1).mask |= Up), ++cnt;
-					if (y < m_row - 1)		(At(x, y + 1, z).mask |= Right), ++cnt;
-					if (y > 0)					(At(x, y - 1, z).mask |= Left), ++cnt;
-					if (x < m_layer - 1)	(At(x + 1, y, z).mask |= Back), ++cnt;
-					if (x > 0)					(At(x - 1, y, z).mask |= Front), ++cnt;
-					if (At(x, y, z).TexType < m_tcnt)
+					if (z < (int)m_col - 1)		(At(x, y, z + 1).mask |= Down);// ++cnt;
+					if (z > 0)					(At(x, y, z - 1).mask |= Up);// ++cnt;
+					if (y <(int)m_row - 1)		(At(x, y + 1, z).mask |= Left);// ++cnt;
+					if (y > 0)					(At(x, y - 1, z).mask |= Right);// ++cnt;
+					if (x <(int)m_layer - 1)	(At(x + 1, y, z).mask |= Back);// ++cnt;
+					if (x > 0)					(At(x - 1, y, z).mask |= Front);// ++cnt;
+					if (At(x, y, z).TexType < m_tcnt && At(x, y, z).TexType>=0)
 					{
 						m_FastTable[At(x, y, z).TexType].Push(&At(x, y, z));
 					}
@@ -37,16 +37,42 @@ int Map3D::CalcMask()
 			}
 		}
 	}
+	return cnt;
+}
+
+int Map3D::CountRect()
+{
+	int x, y, z, cnt = 0;
+	for (x = 0; x < (int)m_layer; ++x)
+	{
+		for (y = 0; y < (int)m_row; ++y)
+		{
+			for (z = 0; z < (int)m_col; ++z)
+			{
+				if (At(x, y, z).TexType != -1)
+				{
+					cnt += 6;
+					if ((At(x, y, z).mask & Nyan::Up) != 0)cnt--;
+					if ((At(x, y, z).mask & Nyan::Down) != 0)cnt--;
+					if ((At(x, y, z).mask & Nyan::Left) != 0)cnt--;
+					if ((At(x, y, z).mask & Nyan::Right) != 0)cnt--;
+					if ((At(x, y, z).mask & Nyan::Front) != 0)cnt--;
+					if ((At(x, y, z).mask & Nyan::Back) != 0)cnt--;
+				}
+			}
+		}
+	}
+	return cnt;
 }
 
 void Map3D::ClearMask()
 {
 	int x, y, z;
-	for (x = 0; x < m_layer; ++x)
+	for (x = 0; x < (int)m_layer; ++x)
 	{
-		for (y = 0; y < m_row; ++y)
+		for (y = 0; y < (int)m_row; ++y)
 		{
-			for (z = 0; z < m_col; ++z)
+			for (z = 0; z < (int)m_col; ++z)
 			{
 				if (At(x, y, z).TexType != -1)
 				{
@@ -59,11 +85,11 @@ void Map3D::ClearMask()
 
 void Map3D::ReCalcBlock(const int& x, const int& y, const int& z)
 {
-	if (z < m_col - 1)		At(x, y, z + 1).mask |= Down;
+	if (z < (int)m_col - 1)		At(x, y, z + 1).mask |= Down;
 	if (z > 0)					At(x, y, z - 1).mask |= Up;
-	if (y < m_row - 1)		At(x, y + 1, z).mask |= Right;
+	if (y < (int)m_row - 1)		At(x, y + 1, z).mask |= Right;
 	if (y > 0)					At(x, y - 1, z).mask |= Left;
-	if (x < m_layer - 1)	At(x + 1, y, z).mask |= Back;
+	if (x < (int)m_layer - 1)	At(x + 1, y, z).mask |= Back;
 	if (x > 0)					At(x - 1, y, z).mask |= Front;
 }
 
@@ -79,17 +105,17 @@ void Map3D::OutBinary(__in bool isSaveMask, __out SaveFormat& bin)
 	bin[2] = 0x01;//文件版本:Ver.1
 	bin[3] = isSaveMask?0x1:0;
 	int i = 128;
-	wordptr[2] = m_layer;
-	wordptr[3] = m_row;
-	wordptr[4] = m_col;
+	wordptr[2] = (WORD)m_layer;
+	wordptr[3] = (WORD)m_row;
+	wordptr[4] = (WORD)m_col;
 
 	//实际数据写入
 	int x, y, z;
-	for (x = 0; x < m_layer; ++x)
+	for (x = 0; x < (int)m_layer; ++x)
 	{
-		for (y = 0; y < m_row; ++y)
+		for (y = 0; y < (int)m_row; ++y)
 		{
-			for (z = 0; z < m_col; ++z)
+			for (z = 0; z < (int)m_col; ++z)
 			{
 				if (At(x, y, z).TexType != -1)
 				{
@@ -140,11 +166,11 @@ Minimal::MinimalArrayT<m_block>(alloc), m_FastTable(alloc), m_tcnt(0)
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			for (x = 0; x < m_layer; ++x)
+			for (x = 0; x < (int)m_layer; ++x)
 			{
-				for (y = 0; y < m_row; ++y)
+				for (y = 0; y < (int)m_row; ++y)
 				{
-					for (z = 0; z < m_col; ++z)
+					for (z = 0; z < (int)m_col; ++z)
 					{
 						At(x, y, z).TexType = bin[++i];
 						if (At(x, y, z).TexType == 0xff)

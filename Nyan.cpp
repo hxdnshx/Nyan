@@ -16,7 +16,9 @@
 #include "Nyan.h"
 #include <TCHAR.h>
 
+#include "Scene.h"
 #include"Map.h"
+#include "Line.h"
 
 
 using namespace Minimal;
@@ -29,8 +31,9 @@ class NNN::State::c_RenderState		*g_render_state = nullptr;
 class NNN::State::c_SamplerState	*g_sampler_state = nullptr;
 
 
-DirectX::XMVECTOR g_CamPos = { 0.0f, 0.0f, 5.0f, 0.0f };
+DirectX::XMVECTOR g_CamPos = { 10.0f, 10.0f, 10.0f, 0.0f };
 DirectX::XMVECTOR g_CamFocus = { 0, 0, 0, 0 };
+DirectX::XMVECTOR g_CamAhead = { 0, 0, 1, 0 };
 DirectX::XMMATRIX	g_World;
 DirectX::XMMATRIX	g_View;
 DirectX::XMMATRIX	g_Projection;
@@ -45,13 +48,14 @@ struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex g_vertices[4];
 
 WORD g_indices[] =
 {
-	0,1,3,
+	3,1,0,
 	0,2,3,
 };
 
 // 窗口标题
 const WCHAR g_k_TITLE[] = L"Nyan";
 //Nyan::Map3D *map;
+Nyan::Scene *inst;
 
 void Init_RenderState()
 {
@@ -71,6 +75,9 @@ void Init_RenderState()
 	g_render_state->BS_Set_RenderTarget_SrcBlendAlpha(D3D11_BLEND_ONE, 0);
 	g_render_state->BS_Set_RenderTarget_DestBlendAlpha(D3D11_BLEND_ZERO, 0);
 	g_render_state->BS_Set_RenderTarget_BlendOpAlpha(D3D11_BLEND_OP_ADD, 0);
+
+	g_render_state->RS_SetCullMode(D3D11_CULL_NONE);
+	//g_render_state->RS_SetFrontCounterClockwise(FALSE);
 }
 //--------------------------------------------------
 void Init_SamplerState()
@@ -99,13 +106,13 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 	NNN::Device::DeviceContext::IASetIndexBuffer(g_ib);
 	NNN::Device::DeviceContext::IASetVertexBuffers(g_vb, sizeof(struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex));
 	NNN::Device::DeviceContext::IASetInputLayout(NNN::Shader::ShaderLibs::Texture::ColorTexture::GetInputLayout());
-	NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
 
 
-	DirectX::XMVECTOR Up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	g_View = DirectX::XMMatrixLookAtLH(g_CamPos, g_CamFocus, Up);
+	DirectX::XMVECTOR Up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	g_View = DirectX::XMMatrixLookAtLH(g_CamPos, g_CamFocus, g_CamAhead);
 	DirectX::XMMATRIX mWVP = g_World * g_View * g_Projection;
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 
@@ -121,6 +128,8 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 	NNN::Device::DeviceContext::DrawIndexed(6, 0, 0, 4);
 	//NNN::Device::DeviceContext::Draw(4);
 	NNN::Device::DeviceContext::EndEffect();
+
+	inst->Render(0);
 
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
 	static WCHAR s_title_txt[100] = {0};
@@ -149,10 +158,27 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	g_World = DirectX::XMMatrixIdentity();
 
+	inst = new Nyan::Scene(&g_allocator);
+
+	inst->InitScene(10,10,10);
+	inst->GetMap()->At(0, 0, 0).TexType = 0;
+	inst->GetMap()->At(0, 0, 1).TexType = 0;
+	inst->GetMap()->At(0, 0, 2).TexType = 0;
+	inst->GetMap()->At(0, 0, 3).TexType = 0;
+	inst->GetMap()->At(0, 1, 0).TexType = 0;
+	inst->GetMap()->At(0, 2, 0).TexType = 0;
+	inst->GetMap()->At(0, 3, 0).TexType = 0;
+	inst->GetMap()->At(1, 0, 0).TexType = 0;
+	inst->GetMap()->At(2, 0, 0).TexType = 0;
+	inst->GetMap()->At(3, 0, 0).TexType = 0;
+
+	inst->ImportTexture(L"Texture_Default.png");
+
+ 	inst->InitBuffer(1);
 	
 	//g_View = NNN::Misc::GetOrthoView();
 	
-
+	//V(NNN::Texture::Add(L"Character.png", L"Character.png", 0xffff00ff, true));
 	V(NNN::Texture::Add(L"Character.png", L"Character.png", 0xffff00ff, true));
 	g_texture = NNN::Texture::Find(L"Character.png");
 
@@ -198,6 +224,7 @@ void OnCreate_func(void* /*pUserContext*/)
 #endif	// NNN_PLATFORM_WIN32
 	}
 
+	
 	g_vb = new struct NNN::Buffer::s_VertexBuffer();
 	g_ib = new struct NNN::Buffer::s_IndexBuffer();
 
@@ -241,6 +268,8 @@ void OnCreate_func(void* /*pUserContext*/)
  *==============================================================*/
 void OnDestroy_func(void* /*pUserContext*/)
 {
+	delete inst;
+
 	SAFE_RELEASE(g_vb);
 	SAFE_RELEASE(g_ib);
 	
@@ -469,22 +498,67 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	}
 	m_lx = NNN::Input::Mouse::MouseX();
 	m_ly = NNN::Input::Mouse::MouseY();
+
+	if(false){
+		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
+
+		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)m_lx * 2 / NNN::Misc::GetClientWidth(false) - 1) / g_Projection.r[0].m128_f32[0], -((float)m_ly * 2 / NNN::Misc::GetClientHeight(false) - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
+		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_View);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, viewinv);
+
+		DirectX::XMFLOAT4 ori, dir;
+		DirectX::XMStoreFloat4(&ori, m_mouse);
+		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
+		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
+		DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
+	}
+
 	//static float p_x, p_y;
 	if (NNN::Input::Mouse::isMouseButtonDown(1)){
-		DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
+		
+		DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos,g_CamFocus);
 		float length=DirectX::XMVectorGetX(DirectX::XMVector3Length(m_pos));
-		DirectX::XMVECTOR mousedelta = DirectX::XMVectorSet((float)-dy/200*length, (float)dx/200*length, 0, 0);//旋转90度
-		DirectX::XMVECTOR n = DirectX::XMVector4Normalize(m_pos);//法向量
-		mousedelta = DirectX::XMVector3Cross(mousedelta,n);
-		g_CamPos = DirectX::XMVectorAdd(g_CamPos, mousedelta);
-		g_CamPos = DirectX::XMVector4Normalize(g_CamPos);
-		g_CamPos = DirectX::XMVectorScale(g_CamPos, length);
+		DirectX::XMVECTOR m_n1 = DirectX::XMVectorSet(0, 0, 1, 0);
+		DirectX::XMVECTOR m_n2 = DirectX::XMVectorSet(0, 1, 0, 0);
+		m_n1 = DirectX::XMVectorAbs(DirectX::XMVector3Cross(m_n1, m_pos));
+		if (DirectX::XMVectorGetX(DirectX::XMVector3Length(m_n1)) < 1.00)
+		{
+			//return;
+		}
+		m_pos = DirectX::XMVector4Transform(m_pos, DirectX::XMMatrixRotationAxis(m_n1,(float)dy / 150 * 3.14159));
+		m_n2 = DirectX::XMVector3Cross(m_n2, m_pos);
+		m_pos = DirectX::XMVector4Transform(m_pos, DirectX::XMMatrixRotationAxis(m_n2,(float)dx / 150 * 3.14159));
+		m_pos = DirectX::XMVector4Normalize(m_pos);
+		m_pos = DirectX::XMVectorScale(m_pos, length);
+		g_CamPos= DirectX::XMVectorAdd(m_pos, g_CamFocus);
+		
+
+		
 	}
 	else if (NNN::Input::Mouse::isMouseButtonDown(0))
 	{
-		DirectX::XMVECTOR mousedelta = DirectX::XMVectorSet((float)dx / 100, (float)dy / 100, 0, 0);
-		g_CamPos = DirectX::XMVectorAdd(g_CamPos, mousedelta);
-		g_CamFocus = DirectX::XMVectorAdd(g_CamFocus, mousedelta);
+
+		{
+			DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
+			//DirectX::XMVECTOR mousedelta = DirectX::XMVectorSet((float)- dy / 100, (float)/*dx*/ 0 / 100, 0, 0); //旋转90度
+			DirectX::XMVECTOR n = DirectX::XMVector4Normalize(m_pos);//法向量
+			DirectX::XMVECTOR mousedelta = DirectX::XMVectorScale(n, (float)dy / 50);
+			g_CamPos = DirectX::XMVectorAdd(g_CamPos, mousedelta);
+			g_CamFocus = DirectX::XMVectorAdd(g_CamFocus, mousedelta);
+		}
+
+		{
+			DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamFocus, g_CamPos);
+			float length = DirectX::XMVectorGetX(DirectX::XMVector3Length(m_pos));
+			DirectX::XMVECTOR mousedelta = DirectX::XMVectorSet((float)-/*dy*/ 0 / 50 , (float)/*dx*/ dy / 50 , 0, 0);//旋转90度
+			DirectX::XMVECTOR n = DirectX::XMVector4Normalize(m_pos);//法向量
+			mousedelta = DirectX::XMVector3Cross(mousedelta, n);
+			m_pos = DirectX::XMVectorAdd(m_pos, mousedelta);
+			m_pos = DirectX::XMVector4Normalize(m_pos);
+			m_pos = DirectX::XMVectorScale(m_pos, length);
+			g_CamFocus = DirectX::XMVectorAdd(m_pos, g_CamPos);
+		}
 	}
 	
 }

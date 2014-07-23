@@ -1,3 +1,6 @@
+#pragma once
+
+
 #include "MinimalAllocator.hpp"
 
 #define MINIMAL_USE_PROCESSHEAPSTRING
@@ -9,6 +12,7 @@
 #include "../../../Src/nnnEngine/nnn.h"
 
 #include "Map.h"
+#include "Line.h"
 
 #define VertexType NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex
 
@@ -28,19 +32,32 @@ namespace Nyan{
 		typedef std::pair<int, int> RenderInfo;
 
 		Minimal::MinimalArrayT< RenderInfo > m_rinfo;
-
+		
 		//这里有一个约定,即每个场景使用的纹理名不会相同
 		//为了保证都能安全的释放
-		void InitBuffer();
-		void Render();
+		void InitBuffer(float scale);
+		void Render(int startcol,int endLayer=-1);
+
+		/*
+			For Arg2:
+				0-┌
+				1-┐
+				2-└
+				3-┘
+		*/
+		inline DirectX::XMFLOAT2 GetTexloc(int texID, int loc);
+		
+		DirectX::XMFLOAT4 TestCollisoin(const LineFunc& src);
+
 		void SaveScene(__out SaveFormat &bin);
 		void LoadScene(__in SaveFormat& bin);
 		void InitScene(__in int x, __in int y, __in int z);
 		inline Map3D* GetMap(){return map;}
 		void ImportTexture(__in wchar_t* ptr);
 		Scene(Minimal::IMinimalAllocator *alloc) :
-			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc)
+			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0)
 		{
+			m_alloc = alloc;
 			m_tstr = L"";
 			m_vb = nullptr;
 			m_ib = nullptr;

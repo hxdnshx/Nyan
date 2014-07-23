@@ -58,6 +58,7 @@
     </ClInclude>
     <ClInclude Include="Map.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Line.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
