@@ -146,6 +146,49 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 	return S_OK;
 }
 
+void ResetMap()
+{
+	inst->GetMap()->At(0, 0, 0).TexType = 1;
+	inst->GetMap()->At(0, 0, 1).TexType = 0;
+	inst->GetMap()->At(0, 0, 2).TexType = 0;
+	inst->GetMap()->At(0, 0, 3).TexType = 1;
+	inst->GetMap()->At(0, 1, 0).TexType = 0;
+	inst->GetMap()->At(0, 2, 0).TexType = 0;
+	inst->GetMap()->At(0, 3, 0).TexType = 1;
+	inst->GetMap()->At(1, 0, 0).TexType = 0;
+	inst->GetMap()->At(2, 0, 0).TexType = 0;
+	inst->GetMap()->At(3, 0, 0).TexType = 1;
+
+	inst->GetMap()->At(3, 1, 0).TexType = 0;
+	inst->GetMap()->At(3, 2, 0).TexType = 0;
+	inst->GetMap()->At(3, 3, 0).TexType = 1;
+	inst->GetMap()->At(3, 0, 1).TexType = 0;
+	inst->GetMap()->At(3, 0, 2).TexType = 0;
+	inst->GetMap()->At(3, 0, 3).TexType = 1;
+	inst->GetMap()->At(3, 1, 3).TexType = 0;
+	inst->GetMap()->At(3, 2, 3).TexType = 0;
+	inst->GetMap()->At(3, 3, 3).TexType = 1;
+
+	inst->GetMap()->At(1, 3, 0).TexType = 0;
+	inst->GetMap()->At(2, 3, 0).TexType = 0;
+	inst->GetMap()->At(3, 3, 0).TexType = 1;
+	inst->GetMap()->At(0, 3, 1).TexType = 0;
+	inst->GetMap()->At(0, 3, 2).TexType = 0;
+	inst->GetMap()->At(0, 3, 3).TexType = 1;
+	inst->GetMap()->At(1, 3, 3).TexType = 0;
+	inst->GetMap()->At(2, 3, 3).TexType = 0;
+	inst->GetMap()->At(3, 3, 3).TexType = 1;
+
+	inst->GetMap()->At(1, 0, 3).TexType = 0;
+	inst->GetMap()->At(2, 0, 3).TexType = 0;
+	inst->GetMap()->At(3, 0, 3).TexType = 1;
+	inst->GetMap()->At(0, 1, 3).TexType = 0;
+	inst->GetMap()->At(0, 2, 3).TexType = 0;
+	inst->GetMap()->At(0, 3, 3).TexType = 1;
+	inst->GetMap()->At(3, 3, 1).TexType = 0;
+	inst->GetMap()->At(3, 3, 2).TexType = 0;
+	inst->GetMap()->At(3, 3, 3).TexType = 1;
+}
 
 /*==============================================================
  * 初始化函数
@@ -161,26 +204,21 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst = new Nyan::Scene(&g_allocator);
 
 	inst->InitScene(10,10,10);
-	inst->GetMap()->At(0, 0, 0).TexType = 0;
-	inst->GetMap()->At(0, 0, 1).TexType = 0;
-	inst->GetMap()->At(0, 0, 2).TexType = 0;
-	inst->GetMap()->At(0, 0, 3).TexType = 0;
-	inst->GetMap()->At(0, 1, 0).TexType = 0;
-	inst->GetMap()->At(0, 2, 0).TexType = 0;
-	inst->GetMap()->At(0, 3, 0).TexType = 0;
-	inst->GetMap()->At(1, 0, 0).TexType = 0;
-	inst->GetMap()->At(2, 0, 0).TexType = 0;
-	inst->GetMap()->At(3, 0, 0).TexType = 0;
+	
+	ResetMap();
 
 	inst->ImportTexture(L"Texture_Default.png");
+	inst->ImportTexture(L"Texture_Selected.png");
+	inst->ImportTexture(L"Texture_Special.png");
+
 
  	inst->InitBuffer(1);
 	
 	//g_View = NNN::Misc::GetOrthoView();
 	
 	//V(NNN::Texture::Add(L"Character.png", L"Character.png", 0xffff00ff, true));
-	V(NNN::Texture::Add(L"Character.png", L"Character.png", 0xffff00ff, true));
-	g_texture = NNN::Texture::Find(L"Character.png");
+	V(NNN::Texture::Add(L"Texture_Default.png", L"Texture_Default.png", 0xffff00ff, true));
+	g_texture = NNN::Texture::Find(L"Texture_Default.png");
 
 	g_image_width = 10;
 	g_image_height = 10;
@@ -499,7 +537,8 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	m_lx = NNN::Input::Mouse::MouseX();
 	m_ly = NNN::Input::Mouse::MouseY();
 
-	if(false){
+	{
+		static DirectX::XMFLOAT4 l_result = { 0, 0, 0, 0 };
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 		m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
 
@@ -510,8 +549,27 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		DirectX::XMFLOAT4 ori, dir;
 		DirectX::XMStoreFloat4(&ori, m_mouse);
 		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
+		ResetMap();
 		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
-		DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
+		if (result.x != -1)
+		{
+			if (!(result.x== l_result.x && result.y==l_result.y && result.z ==l_result.z))
+			{
+				inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
+				inst->GetMap()->At(l_result.x, l_result.y, l_result.z).TexType = 0;
+			}
+			inst->InitBuffer(1.0);
+			l_result = result;
+		}
+		else
+		{
+			inst->GetMap()->At(l_result.x, l_result.y, l_result.z).TexType = 0;
+			l_result.x = 0;
+			l_result.y = 0;
+			l_result.z = 0;
+			l_result.w = 0;
+		}
+		//{result.x},{result.y},{result.z},{result.w}\n
 	}
 
 	//static float p_x, p_y;

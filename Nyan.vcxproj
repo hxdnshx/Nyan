@@ -291,6 +291,7 @@
       <SubSystem>Windows</SubSystem>
       <MinimumRequiredVersion>5.1</MinimumRequiredVersion>
       <AdditionalLibraryDirectories>..\..\..\bin\$(Platform)\$(Configuration)\;..\..\..\3rdParty\nnnEngine\libs\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -298,6 +299,9 @@
       <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link />
+    <Link>
+      <Profile>true</Profile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_wp8|Win32'">
     <ClCompile>
@@ -331,6 +335,7 @@
       <SubSystem>Windows</SubSystem>
       <MinimumRequiredVersion>5.1</MinimumRequiredVersion>
       <AdditionalLibraryDirectories>..\..\..\bin\$(Platform)\$(Configuration)\;..\..\..\3rdParty\nnnEngine\libs\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_wp8|x64'">

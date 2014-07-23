@@ -362,8 +362,10 @@ namespace Nyan
 			}
 			else
 			{
+				
 				effect->SetResource("g_Texture", (m_tptr[m_rinfo[i].second]), 0);
 				NNN::Device::DeviceContext::DrawIndexed(m_rinfo[i].first - startindex, startindex, 0, (m_rinfo[i].first - startindex) / 3);
+				startindex = m_rinfo[i].first;
 			}
 		}
 		NNN::Device::DeviceContext::EndEffect();
@@ -389,10 +391,10 @@ namespace Nyan
 		int x,		y,		z;
 		float ta, tb;
 		int tia, tib;
-		xflag = (src.n.x > 0);
-		yflag = (src.n.y > 0);
-		zflag = (src.n.z > 0);
-		s_x = xflag ? (map->GetX()) : 0;
+		xflag = !(src.n.x > 0);
+		yflag = !(src.n.y > 0);
+		zflag = !(src.n.z > 0);
+		s_x = xflag ? (map->GetX()-1) : 0;
 		e_x = xflag ? 0 : (map->GetX());
 		for (x = s_x; x != e_x; x += xflag ? -1 : 1)
 		{
@@ -415,6 +417,10 @@ namespace Nyan
 			s_y = yflag ? tia : tib;
 			e_y = yflag ? tib : tia;
 			
+			if (s_y == e_y)continue;
+			if (s_y >= map->GetY())--s_y;
+			
+
 			for (y = s_y; y != e_y; y += yflag ? -1 : 1)
 			{
 				ta = src.p1.z + src.n.z * (y - src.p1.y)/(src.n.y);//larger
@@ -438,10 +444,17 @@ namespace Nyan
 
 				s_z = zflag ? tia : tib;
 				e_z = zflag ? tib : tia;
+
+				if (s_z == e_z)continue;
+				if (s_z >= map->GetZ())--s_z;
+
 				for (z = s_z; z != e_z; z += zflag ? -1 : 1)
 				{
-					if (map->At(x,y,z).TexType!=-1)
+					if (map->At(x, y, z).TexType != -1)
+					{
+						map->At(x, y, z).TexType = 1;
 						return DirectX::XMFLOAT4(x, y, z, 0);
+					}
 				}
 			}
 		}
