@@ -148,46 +148,46 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 
 void ResetMap()
 {
-	inst->GetMap()->At(0, 0, 0).TexType = 1;
+	inst->GetMap()->At(0, 0, 0).TexType = 0;
 	inst->GetMap()->At(0, 0, 1).TexType = 0;
 	inst->GetMap()->At(0, 0, 2).TexType = 0;
-	inst->GetMap()->At(0, 0, 3).TexType = 1;
+	inst->GetMap()->At(0, 0, 3).TexType = 0;
 	inst->GetMap()->At(0, 1, 0).TexType = 0;
 	inst->GetMap()->At(0, 2, 0).TexType = 0;
-	inst->GetMap()->At(0, 3, 0).TexType = 1;
+	inst->GetMap()->At(0, 3, 0).TexType = 0;
 	inst->GetMap()->At(1, 0, 0).TexType = 0;
 	inst->GetMap()->At(2, 0, 0).TexType = 0;
-	inst->GetMap()->At(3, 0, 0).TexType = 1;
+	inst->GetMap()->At(3, 0, 0).TexType = 0;
 
 	inst->GetMap()->At(3, 1, 0).TexType = 0;
 	inst->GetMap()->At(3, 2, 0).TexType = 0;
-	inst->GetMap()->At(3, 3, 0).TexType = 1;
+	inst->GetMap()->At(3, 3, 0).TexType = 0;
 	inst->GetMap()->At(3, 0, 1).TexType = 0;
 	inst->GetMap()->At(3, 0, 2).TexType = 0;
-	inst->GetMap()->At(3, 0, 3).TexType = 1;
+	inst->GetMap()->At(3, 0, 3).TexType = 0;
 	inst->GetMap()->At(3, 1, 3).TexType = 0;
 	inst->GetMap()->At(3, 2, 3).TexType = 0;
-	inst->GetMap()->At(3, 3, 3).TexType = 1;
+	inst->GetMap()->At(3, 3, 3).TexType = 0;
 
 	inst->GetMap()->At(1, 3, 0).TexType = 0;
 	inst->GetMap()->At(2, 3, 0).TexType = 0;
-	inst->GetMap()->At(3, 3, 0).TexType = 1;
+	inst->GetMap()->At(3, 3, 0).TexType = 0;
 	inst->GetMap()->At(0, 3, 1).TexType = 0;
 	inst->GetMap()->At(0, 3, 2).TexType = 0;
-	inst->GetMap()->At(0, 3, 3).TexType = 1;
+	inst->GetMap()->At(0, 3, 3).TexType = 0;
 	inst->GetMap()->At(1, 3, 3).TexType = 0;
 	inst->GetMap()->At(2, 3, 3).TexType = 0;
-	inst->GetMap()->At(3, 3, 3).TexType = 1;
+	inst->GetMap()->At(3, 3, 3).TexType = 0;
 
 	inst->GetMap()->At(1, 0, 3).TexType = 0;
 	inst->GetMap()->At(2, 0, 3).TexType = 0;
-	inst->GetMap()->At(3, 0, 3).TexType = 1;
+	inst->GetMap()->At(3, 0, 3).TexType = 0;
 	inst->GetMap()->At(0, 1, 3).TexType = 0;
 	inst->GetMap()->At(0, 2, 3).TexType = 0;
-	inst->GetMap()->At(0, 3, 3).TexType = 1;
+	inst->GetMap()->At(0, 3, 3).TexType = 0;
 	inst->GetMap()->At(3, 3, 1).TexType = 0;
 	inst->GetMap()->At(3, 3, 2).TexType = 0;
-	inst->GetMap()->At(3, 3, 3).TexType = 1;
+	inst->GetMap()->At(3, 3, 3).TexType = 0;
 }
 
 /*==============================================================
@@ -538,7 +538,6 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	m_ly = NNN::Input::Mouse::MouseY();
 
 	{
-		static DirectX::XMFLOAT4 l_result = { 0, 0, 0, 0 };
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 		m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
 
@@ -553,21 +552,8 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
 		if (result.x != -1)
 		{
-			if (!(result.x== l_result.x && result.y==l_result.y && result.z ==l_result.z))
-			{
-				inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
-				inst->GetMap()->At(l_result.x, l_result.y, l_result.z).TexType = 0;
-			}
+			inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
 			inst->InitBuffer(1.0);
-			l_result = result;
-		}
-		else
-		{
-			inst->GetMap()->At(l_result.x, l_result.y, l_result.z).TexType = 0;
-			l_result.x = 0;
-			l_result.y = 0;
-			l_result.z = 0;
-			l_result.w = 0;
 		}
 		//{result.x},{result.y},{result.z},{result.w}\n
 	}

@@ -383,53 +383,50 @@ namespace Nyan
 		delete map;
 	}
 
+	inline int FitFunc(int x, int y, int z, float ox,float oy, float oz)
+	{
+		return 32768 - (ox - 0.5 - x)*(ox - 0.5 - x) + (oy - 0.5 - y)*(oy - 0.5 - y) + (oz - 0.5 - z)*(oz - 0.5 - z);
+	}
+
 	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)
 	{
-		bool xflag, yflag, zflag;
-		int s_x,	s_y,	s_z;
-		int e_x, e_y,	e_z;
+		int e_y, e_z;
 		int x,		y,		z;
 		float ta, tb;
 		int tia, tib;
-		xflag = !(src.n.x > 0);
-		yflag = !(src.n.y > 0);
-		zflag = !(src.n.z > 0);
-		s_x = xflag ? (map->GetX()-1) : 0;
-		e_x = xflag ? 0 : (map->GetX());
-		for (x = s_x; x != e_x; x += xflag ? -1 : 1)
+		int bx=-1, by=-1, bz=-1;
+		int fit = 0;
+		int tmp;
+		for (x = 0;  x < map->GetX(); ++x)
 		{
 			ta = src.p1.y + src.n.y*(x - src.p1.x)/(src.n.x); //larger
 			tb = src.p1.y + src.n.y*(x + 1 - src.p1.x)/(src.n.x);
 
-			if (ta <= -1) continue;
-			if (tb >= map->GetY()+1)continue;
-			if (ta<tb)//swap
+			if (ta < tb)//swap
 			{
 				float tmp;
 				tmp = ta;
 				ta = tb;
 				tb = tmp;
 			}
+			
+			if (ta <= -1) continue;
+			if (tb >= map->GetY())continue;
+			
 			tia = ceil(ta);
 			tib = floor(tb);
 			if (tia > map->GetY())tia = map->GetY();
 			if (tib < 0)tib = 0;
-			s_y = yflag ? tia : tib;
-			e_y = yflag ? tib : tia;
+			e_y = tia;
 			
-			if (s_y == e_y)continue;
-			if (s_y >= map->GetY())--s_y;
-			
+			if (tia == tib)continue;
 
-			for (y = s_y; y != e_y; y += yflag ? -1 : 1)
+			for (y = tib; y < e_y; ++y)
 			{
 				ta = src.p1.z + src.n.z * (y - src.p1.y)/(src.n.y);//larger
 				tb = src.p1.z + src.n.z * (y + 1 - src.p1.y)/(src.n.y);
 				
-				if (ta <= -1) continue;
-				if (tb >= (map->GetZ())+1)continue;
-
-				if (ta<tb)//swap
+				if (ta < tb)//swap
 				{
 					float tmp;
 					tmp = ta;
@@ -437,27 +434,36 @@ namespace Nyan
 					tb = tmp;
 				}
 
+				if (ta <= -1) continue;
+				if (tb >= (map->GetZ()))continue;
+
+				
+
 				tia = ceil(ta);
 				tib = floor(tb);
 				if (tia > map->GetZ())tia = map->GetZ();
 				if (tib < 0)tib = 0;
+				e_z = tia;
 
-				s_z = zflag ? tia : tib;
-				e_z = zflag ? tib : tia;
+				if (tia==tib)continue;
 
-				if (s_z == e_z)continue;
-				if (s_z >= map->GetZ())--s_z;
-
-				for (z = s_z; z != e_z; z += zflag ? -1 : 1)
+				for (z = tib; z < e_z; ++z)
 				{
 					if (map->At(x, y, z).TexType != -1)
 					{
 						map->At(x, y, z).TexType = 1;
-						return DirectX::XMFLOAT4(x, y, z, 0);
+						if ((tmp = FitFunc(x, y, z, src.p1.x, src.p1.y, src.p1.z)) > fit)
+						{
+							fit = tmp;
+							bx = x;
+							by = y;
+							bz = z;
+							//map->At(x, y, z).TexType = 2;
+						}
 					}
 				}
 			}
 		}
-		return DirectX::XMFLOAT4(-1, -1, -1, -1);
+		return DirectX::XMFLOAT4(bx,by,bz,0);
 	}
 }
