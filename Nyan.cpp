@@ -57,6 +57,8 @@ const WCHAR g_k_TITLE[] = L"Nyan";
 //Nyan::Map3D *map;
 Nyan::Scene *inst;
 
+
+
 void Init_RenderState()
 {
 	g_render_state = new class NNN::State::c_RenderState();
@@ -203,7 +205,7 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	inst = new Nyan::Scene(&g_allocator);
 
-	inst->InitScene(10,10,10);
+	inst->InitScene(256,256,20);
 	
 	ResetMap();
 
@@ -532,7 +534,7 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	}
 	if (dx == 0 && dy == 0)
 	{
-		return;
+		//return;
 	}
 	m_lx = NNN::Input::Mouse::MouseX();
 	m_ly = NNN::Input::Mouse::MouseY();
@@ -553,8 +555,11 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		if (result.x != -1)
 		{
 			inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
-			inst->InitBuffer(1.0);
+			
 		}
+		//inst->GetMap()->CalcMask();
+		inst->GetMap()->CountRect();
+		//inst->InitBuffer(1.0);
 		//{result.x},{result.y},{result.z},{result.w}\n
 	}
 
