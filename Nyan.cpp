@@ -146,9 +146,6 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 	return S_OK;
 }
 
-
-
-
 void ResetMap()
 {
 	inst->GetMap()->At(0, 0, 0).TexType = 0;
@@ -358,114 +355,8 @@ void ChangeSize(UINT width, UINT height)
  *		bKeyDown	- 是否 WM_KEYDOWN 或 WM_SYSKEYDOWN
  *		bAltDown	- Alt 是否按下
  *==============================================================*/
-void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*pUserContext*/ )
+void CALLBACK OnKeyboard( UINT /*nChar*/, bool /*bKeyDown*/, bool /*bAltDown*/, void* /*pUserContext*/ )
 {
-	static bool onceflag_I=false, onceflag_R=false;
-	if (!bKeyDown)
-	{
-		return;
-	}
-	if (nChar=='I' || nChar=='i')//(NNN::Input::Keyboard::isKeyDown(DIK_I))
-	{
-		if (!onceflag_I)
-		{
-			//onceflag_I = true;
-			{
-				DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
-				m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
-
-				DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-					(float)NNN::Input::Mouse::MouseX() *2 / NNN::Misc::GetClientWidth(false) - 1) /
-					g_Projection.r[0].m128_f32[0], 
-					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
-					g_Projection.r[1].m128_f32[1], 1, 0);
-				DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_View);
-				m_mouse1 = DirectX::XMVector4Transform(m_mouse1, viewinv);
-
-				DirectX::XMFLOAT4 ori, dir;
-				DirectX::XMStoreFloat4(&ori, m_mouse);
-				DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
-				DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
-				if (result.x != -1)
-				{
-					int nx, ny, nz;
-					nx = result.x;
-					ny = result.y;
-					nz = result.z;
-					switch ((int)result.w)
-					{
-					case Nyan::Direction::Up:
-						nz++;
-						break;
-					case Nyan::Direction::Down:
-						nz--;
-						break;
-					case Nyan::Direction::Left:
-						ny--;
-						break;
-					case Nyan::Direction::Right:
-						ny++;
-						break;
-					case Nyan::Direction::Front:
-						nx++;
-						break;
-					case Nyan::Direction::Back:
-						nx--;
-						break;
-					}
-					if (inst->GetMap()->At(nx, ny, nz).TexType == -1)
-					{
-						inst->GetMap()->At(nx, ny, nz).TexType = 0;
-						inst->InitBuffer(1.0);
-					}
-				}
-				//{result.x},{result.y},{result.z},{result.w}\n
-			}
-		}
-	}
-	else
-	{
-		onceflag_I = false;
-	}
-	
-	if (nChar=='R' || nChar=='r')//(NNN::Input::Keyboard::isKeyDown(DIK_R))
-	{
-		if (!onceflag_R)
-		{
-			//onceflag_R = true;
-			{
-				DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
-				m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
-
-				DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
-					g_Projection.r[0].m128_f32[0],
-					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
-					g_Projection.r[1].m128_f32[1], 1, 0);
-				DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_View);
-				m_mouse1 = DirectX::XMVector4Transform(m_mouse1, viewinv);
-
-				DirectX::XMFLOAT4 ori, dir;
-				DirectX::XMStoreFloat4(&ori, m_mouse);
-				DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
-				DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
-				if (result.x != -1)
-				{
-					
-					if (inst->GetMap()->At(result.x, result.y, result.z).TexType != -1)
-					{
-						inst->GetMap()->At(result.x, result.y, result.z).TexType = -1;
-						inst->InitBuffer(1.0);
-					}
-				}
-				//{result.x},{result.y},{result.z},{result.w}\n
-			}
-		}
-	}
-	else
-	{
-		onceflag_R = false;
-	}
 }
 
 
@@ -647,7 +538,6 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	m_ly = NNN::Input::Mouse::MouseY();
 
 	{
-		static DirectX::XMFLOAT4 l_r = { -1, -1, -1, -1 };
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 		m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
 
@@ -658,21 +548,11 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		DirectX::XMFLOAT4 ori, dir;
 		DirectX::XMStoreFloat4(&ori, m_mouse);
 		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
+		ResetMap();
 		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
-		if (l_r.x != -1)
-		{
-			if (inst->GetMap()->At(l_r.x, l_r.y, l_r.z).TexType != -1)
-			{
-				inst->GetMap()->At(l_r.x, l_r.y, l_r.z).TexType = 0;
-			}
-			l_r.x = -1;
-			l_r.y = -1;
-			l_r.z = -1;
-		}
 		if (result.x != -1)
 		{
 			inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
-			l_r = result;
 			inst->InitBuffer(1.0);
 		}
 		//{result.x},{result.y},{result.z},{result.w}\n
