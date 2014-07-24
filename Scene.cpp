@@ -27,7 +27,7 @@ namespace Nyan
 		//Precalculate buffersize
 		map->SetT(m_tptr.GetSize());
 		//tm_vsize = map->GetX()*map->GetY()*map->GetZ();
-		map->CalcMask();
+		//map->CalcMask();
 		tm_vsize = map->CountRect();
 		tm_isize = tm_vsize * 6;
 		tm_vsize *= 4;
@@ -114,12 +114,13 @@ namespace Nyan
 						py = itmp / map->GetZ();
 						py = map->GetY() - py;
 						flag = true;
+						vert.m_Color = 0xffffffff;
 
 
 						if ((tptr->mask & (Nyan::Down)) == 0)
 						{
 							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
+							//vert.m_Color = 0xffffffff;
 							vert.m_Color_dx11_opengl = 0xffffffff;
 							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
 							vert.m_Tex = GetTexloc(i, 0);
@@ -145,7 +146,7 @@ namespace Nyan
 						if ((tptr->mask & (Nyan::Up)) == 0)
 						{
 							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
+							//vert.m_Color = 0xffffffff;
 							vert.m_Color_dx11_opengl = 0xffffffff;
 							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
 							vert.m_Tex = GetTexloc(i, 0);
@@ -172,7 +173,7 @@ namespace Nyan
 						if ((tptr->mask & (Nyan::Left)) == 0)
 						{
 							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
+							//vert.m_Color = 0xffffffff;
 							vert.m_Color_dx11_opengl = 0xffffffff;
 							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
 							vert.m_Tex = GetTexloc(i, 0);
@@ -199,7 +200,7 @@ namespace Nyan
 						if ((tptr->mask & (Nyan::Right)) == 0)
 						{
 							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
+							//vert.m_Color = 0xffffffff;
 							vert.m_Color_dx11_opengl = 0xffffffff;
 							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
 							vert.m_Tex = GetTexloc(i, 0);
@@ -226,7 +227,7 @@ namespace Nyan
 						if ((tptr->mask & (Nyan::Front)) == 0)
 						{
 							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
+							//vert.m_Color = 0xffffffff;
 							vert.m_Color_dx11_opengl = 0xffffffff;
 							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
 							vert.m_Tex = GetTexloc(i, 0);
@@ -253,7 +254,7 @@ namespace Nyan
 						if ((tptr->mask & (Nyan::Back)) == 0)
 						{
 							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
+							//vert.m_Color = 0xffffffff;
 							vert.m_Color_dx11_opengl = 0xffffffff;
 							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
 							vert.m_Tex = GetTexloc(i, 0);

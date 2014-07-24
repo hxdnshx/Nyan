@@ -54,7 +54,8 @@ namespace Nyan
 		size_t m_layer;//x
 		size_t m_row;//y
 		size_t m_col;//z
-
+		int planecnt;
+		bool pclatest;
 		int m_tcnt;//TextureCount
 		//void BuildVertexBuffer();//其实不应该把VertexBuffer写到Map中
 	public:
@@ -65,7 +66,7 @@ namespace Nyan
 		int CalcMask();
 		void ClearMask();
 		void ReCalcMask();
-		void ReCalcBlock(const int&, const int&, const int&);
+		void ReCalcBlock(const int&, const int&, const int&,const int&,const int&);
 
 		void OutBinary(__in bool isSaveMask, __out SaveFormat& bin);
 
@@ -100,15 +101,16 @@ namespace Nyan
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			return m_arr[m_col*m_row*x + m_col*y + z];
+			return pclatest=false,m_arr[m_col*m_row*x + m_col*y + z];
 		}
 		
 		Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<m_block>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc)
+			MinimalArrayT<m_block>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc), pclatest(false), planecnt(0)
 		{
-			Fill(layer*row*col, -1,0);
+			//Fill(layer*row*col, -1,0);
+			FillSimple(layer*row*col, -1);
 		}
 	};
 	

@@ -42,6 +42,7 @@ int Map3D::CalcMask()
 
 int Map3D::CountRect()
 {
+	if (pclatest)return planecnt;
 	int x, y, z, cnt = 0;
 	for (x = 0; x < (int)m_layer; ++x)
 	{
@@ -62,6 +63,8 @@ int Map3D::CountRect()
 			}
 		}
 	}
+	planecnt = cnt;
+	pclatest = true;
 	return cnt;
 }
 
@@ -83,14 +86,28 @@ void Map3D::ClearMask()
 	}
 }
 
-void Map3D::ReCalcBlock(const int& x, const int& y, const int& z)
+void Map3D::ReCalcBlock(const int& x, const int& y, const int& z,const int& before,const int& after)
 {
-	if (z < (int)m_col - 1)		At(x, y, z + 1).mask |= Down;
-	if (z > 0)					At(x, y, z - 1).mask |= Up;
-	if (y < (int)m_row - 1)		At(x, y + 1, z).mask |= Right;
-	if (y > 0)					At(x, y - 1, z).mask |= Left;
-	if (x < (int)m_layer - 1)	At(x + 1, y, z).mask |= Back;
-	if (x > 0)					At(x - 1, y, z).mask |= Front;
+	if (before == -1 && after != -1)
+	{
+		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 0)		At(x, y, z + 1).mask |= Down	,--planecnt;
+		if (z > 0						&& At(x, y, z - 1).mask || Up == 0)			At(x, y, z - 1).mask |= Up		,--planecnt;
+		if (y < (int)m_row - 1	&& At(x, y + 1, z).mask || Right == 0)		At(x, y + 1, z).mask |= Right	,--planecnt;
+		if (y > 0						&& At(x, y - 1, z).mask || Left == 0)			At(x, y - 1, z).mask |= Left		,--planecnt;
+		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 0)		At(x + 1, y, z).mask |= Back	,--planecnt;
+		if (x > 0						&& At(x - 1, y, z).mask || Front == 0)		At(x - 1, y, z).mask |= Front	,--planecnt;
+		pclatest = true;
+	}
+	else if (before != -1 && after == -1)
+	{
+		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 1)		At(x, y, z + 1).mask &=		0xffffffff - Down	,++planecnt;
+		if (z > 0						&& At(x, y, z - 1).mask || Up == 1)			At(x, y, z - 1).mask &=		0xffffffff - Up		,++planecnt;
+		if (y < (int)m_row - 1	&& At(x, y + 1, z).mask || Right == 1)		At(x, y + 1, z).mask &=		0xffffffff - Right	,++planecnt;
+		if (y > 0						&& At(x, y - 1, z).mask || Left == 1)			At(x, y - 1, z).mask &=		0xffffffff - Left		,++planecnt;
+		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 1)		At(x + 1, y, z).mask &=		0xffffffff - Back	,++planecnt;
+		if (x > 0						&& At(x - 1, y, z).mask || Front == 1)		At(x - 1, y, z).mask &=		0xffffffff - Front	,++planecnt;
+		pclatest = true;
+	}
 }
 
 void Map3D::OutBinary(__in bool isSaveMask, __out SaveFormat& bin)

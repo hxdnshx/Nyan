@@ -53,7 +53,7 @@ WORD g_indices[] =
 };
 
 // 窗口标题
-const WCHAR g_k_TITLE[] = L"Nyan";
+const WCHAR g_k_TITLE[] = L"Nyan Map Editor";
 //Nyan::Map3D *map;
 Nyan::Scene *inst;
 
@@ -190,7 +190,7 @@ void ResetMap()
 	inst->GetMap()->At(0, 3, 3).TexType = 0;
 	inst->GetMap()->At(3, 3, 1).TexType = 0;
 	inst->GetMap()->At(3, 3, 2).TexType = 0;
-	inst->GetMap()->At(3, 3, 3).TexType = 0;
+	inst->GetMap()->At(3, 3, 3).TexType = 2;
 }
 
 /*==============================================================
@@ -206,7 +206,7 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	inst = new Nyan::Scene(&g_allocator);
 
-	inst->InitScene(10,10,10);
+	inst->InitScene(256,256,50);
 	
 	ResetMap();
 
@@ -214,7 +214,7 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst->ImportTexture(L"Texture_Selected.png");
 	inst->ImportTexture(L"Texture_Special.png");
 
-
+	inst->GetMap()->ReCalcMask();
  	inst->InitBuffer(1);
 	
 	//g_View = NNN::Misc::GetOrthoView();
@@ -413,8 +413,12 @@ void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*
 						nx--;
 						break;
 					}
+					if (nx < 0 || nx >= inst->GetMap()->GetX())return;
+					if (ny < 0 || ny >= inst->GetMap()->GetY())return;
+					if (nz < 0 || nz >= inst->GetMap()->GetY())return;
 					if (inst->GetMap()->At(nx, ny, nz).TexType == -1)
 					{
+						inst->GetMap()->ReCalcBlock(nx, ny, nz, inst->GetMap()->At(nx, ny, nz).TexType, 0);
 						inst->GetMap()->At(nx, ny, nz).TexType = 0;
 						inst->InitBuffer(1.0);
 					}
@@ -454,7 +458,9 @@ void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*
 					
 					if (inst->GetMap()->At(result.x, result.y, result.z).TexType != -1)
 					{
+						inst->GetMap()->ReCalcBlock(result.x, result.y, result.z, inst->GetMap()->At(result.x, result.y, result.z).TexType, -1);
 						inst->GetMap()->At(result.x, result.y, result.z).TexType = -1;
+						inst->GetMap()->ClearMask();
 						inst->InitBuffer(1.0);
 					}
 				}
@@ -663,14 +669,17 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		{
 			if (inst->GetMap()->At(l_r.x, l_r.y, l_r.z).TexType != -1)
 			{
+				inst->GetMap()->ReCalcBlock(l_r.x, l_r.y, l_r.z, inst->GetMap()->At(l_r.x, l_r.y, l_r.z).TexType, 0);
 				inst->GetMap()->At(l_r.x, l_r.y, l_r.z).TexType = 0;
 			}
 			l_r.x = -1;
 			l_r.y = -1;
 			l_r.z = -1;
+			inst->InitBuffer(1.0);
 		}
 		if (result.x != -1)
 		{
+			inst->GetMap()->ReCalcBlock(result.x, result.y, result.z, inst->GetMap()->At(result.x, result.y, result.z).TexType, 2);
 			inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
 			l_r = result;
 			inst->InitBuffer(1.0);
