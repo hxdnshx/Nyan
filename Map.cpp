@@ -88,6 +88,7 @@ void Map3D::ClearMask()
 
 void Map3D::ReCalcBlock(const int& x, const int& y, const int& z,const int& before,const int& after)
 {
+	int i;
 	if (before == -1 && after != -1)
 	{
 		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 0)		At(x, y, z + 1).mask |= Down	,--planecnt;
@@ -107,6 +108,21 @@ void Map3D::ReCalcBlock(const int& x, const int& y, const int& z,const int& befo
 		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 1)		At(x + 1, y, z).mask &=		0xffffffff - Back	,++planecnt;
 		if (x > 0						&& At(x - 1, y, z).mask || Front == 1)		At(x - 1, y, z).mask &=		0xffffffff - Front	,++planecnt;
 		pclatest = true;
+	}
+	if (before != -1)
+	{
+		for (i = 0; i < m_FastTable[before].GetSize(); ++i)
+		{
+			if (m_FastTable[before][i] == &At(x, y, z))
+			{
+				m_FastTable[before][i] = nullptr;
+				break;
+			}
+		}
+	}
+	if (after!=-1)
+	{
+		m_FastTable[after].Push(&At(x, y, z));
 	}
 }
 

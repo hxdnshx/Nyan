@@ -101,6 +101,7 @@ namespace Nyan
 				for (; m_cnt[i] < (int)(map->m_FastTable[i].GetSize()); ++(m_cnt[i]))
 				{
 					tptr = map->m_FastTable[i][m_cnt[i]];
+					if (tptr==nullptr || tptr==NULL)continue;
 					//当前的渲染顺序在极端情况下可能会产生涉及Alpha处渲染错误
 					if (tptr < ptr)//确保X值是相同的
 					{

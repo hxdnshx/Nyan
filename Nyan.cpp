@@ -647,7 +647,7 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	}
 	if (dx == 0 && dy == 0)
 	{
-		return;
+		//return;
 	}
 	m_lx = NNN::Input::Mouse::MouseX();
 	m_ly = NNN::Input::Mouse::MouseY();
@@ -675,15 +675,16 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 			l_r.x = -1;
 			l_r.y = -1;
 			l_r.z = -1;
-			inst->InitBuffer(1.0);
+			//inst->InitBuffer(1.0);
 		}
 		if (result.x != -1)
 		{
 			inst->GetMap()->ReCalcBlock(result.x, result.y, result.z, inst->GetMap()->At(result.x, result.y, result.z).TexType, 2);
 			inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
 			l_r = result;
-			inst->InitBuffer(1.0);
+			
 		}
+		inst->InitBuffer(1.0);
 		//{result.x},{result.y},{result.z},{result.w}\n
 	}
 
