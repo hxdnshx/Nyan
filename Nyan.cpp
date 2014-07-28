@@ -205,7 +205,7 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	inst = new Nyan::Scene(&g_allocator);
 
-	inst->InitScene(256,256,20);
+	inst->InitScene(100,100,100);
 	
 	ResetMap();
 
