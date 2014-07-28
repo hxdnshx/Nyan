@@ -387,7 +387,7 @@ namespace Nyan
 
 	inline int FitFunc(int x, int y, int z, float ox,float oy, float oz)
 	{
-		return 32768 - (ox - 0.5 - x)*(ox - 0.5 - x) + (oy - 0.5 - y)*(oy - 0.5 - y) + (oz - 0.5 - z)*(oz - 0.5 - z);
+		return 32768 - (ox - 0.5 - x)*(ox - 0.5 - x) - (oy - 0.5 - y)*(oy - 0.5 - y) - (oz - 0.5 - z)*(oz - 0.5 - z);
 	}
 
 	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)

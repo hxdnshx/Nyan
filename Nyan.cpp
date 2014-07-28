@@ -31,9 +31,10 @@ class NNN::State::c_RenderState		*g_render_state = nullptr;
 class NNN::State::c_SamplerState	*g_sampler_state = nullptr;
 
 
-DirectX::XMVECTOR g_CamPos = { 10.0f, 10.0f, 10.0f, 0.0f };
-DirectX::XMVECTOR g_CamFocus = { 0, 0, 0, 0 };
-DirectX::XMVECTOR g_CamAhead = { 0, 0, 1, 0 };
+//DirectX::XMVECTOR g_CamPos = { 10.0f, 10.0f, 10.0f, 0.0f };
+//DirectX::XMVECTOR g_CamFocus = { 0, 0, 0, 0 };
+//DirectX::XMVECTOR g_CamAhead = { 0, 0, 1, 0 };
+NNN::Camera::c_FirstPersonCamera g_cam;
 DirectX::XMMATRIX	g_World;
 DirectX::XMMATRIX	g_View;
 DirectX::XMMATRIX	g_Projection;
@@ -95,7 +96,7 @@ void Init_SamplerState()
  * 通用渲染函数
  * Render()
  *==============================================================*/
-HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
+HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 {
 	// Clear render target and the depth stencil
 	float ClearColor[4] = { 0, 0, 0, 1.0f }; //{ 0.176f, 0.196f, 0.667f, 1.0f };
@@ -113,9 +114,12 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 	class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
 
 
-	DirectX::XMVECTOR Up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-	g_View = DirectX::XMMatrixLookAtLH(g_CamPos, g_CamFocus, g_CamAhead);
-	DirectX::XMMATRIX mWVP = g_World * g_View * g_Projection;
+	//DirectX::XMVECTOR Up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	g_cam.FrameMove(fElapsedTime);
+	g_View = g_cam.GetViewMatrix();
+	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
+	DirectX::XMMATRIX mRot = DirectX::XMMatrixRotationX(-0.5*3.141592);
+	DirectX::XMMATRIX mWVP =g_World * mRot * g_View * g_Projection;
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 
 	effect->SetResource("g_Texture", g_texture, 0);
@@ -130,6 +134,10 @@ HRESULT Render(double fTime, float /*fElapsedTime*/, void* /*pUserContext*/)
 	NNN::Device::DeviceContext::DrawIndexed(6, 0, 0, 4);
 	//NNN::Device::DeviceContext::Draw(4);
 	NNN::Device::DeviceContext::EndEffect();
+
+	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
+	mWVP = g_World * mRot * g_View * g_Projection;
+	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 
 	inst->Render(0);
 
@@ -201,11 +209,24 @@ void OnCreate_func(void* /*pUserContext*/)
 	HRESULT  hr;
 	// TODO: 初始化代码
 
-	g_World = DirectX::XMMatrixIdentity();
+	DirectX::XMVECTOR vecEye = { 5.0f, 5.0f,5.0f };
+	DirectX::XMVECTOR vecAt = { 0.0f, 0.0f, 0.0f };
+
+	g_cam.SetViewParams(vecEye, vecAt);
+	DirectX::XMFLOAT3 vMin = { -1000.0f, -1000.0f, -1000.0f };
+	DirectX::XMFLOAT3 vMax = { 1000.0f, 1000.0f, 1000.0f };
+
+	g_cam.SetRotateButtons(FALSE, FALSE, FALSE);
+	g_cam.SetClipToBoundary(TRUE, &vMin, &vMax);
+	g_cam.FrameMove(0);
+	
+	//g_cam.Set
+
+	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 
 	inst = new Nyan::Scene(&g_allocator);
 
-	inst->InitScene(100,100,100);
+	inst->InitScene(10,10,10);
 	
 	ResetMap();
 
@@ -225,10 +246,10 @@ void OnCreate_func(void* /*pUserContext*/)
 	g_image_width = 10;
 	g_image_height = 10;
 
-	float min_width = -(float)g_image_width / 2;
-	float max_width = min_width + g_image_width;
-	float min_height = -(float)g_image_height / 2;
-	float max_height = min_height + g_image_height;
+	float min_width = 0;
+	float max_width = 10;
+	float min_height = 0;
+	float max_height = 10;
 
 	float max_u = g_texture->GetMaxU();
 	float max_v = g_texture->GetMaxV();
@@ -518,9 +539,9 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	if (dz != 0)
 	{
 		float scale = 1.0 + (float)dz / 1200;
-		DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
-		m_pos = DirectX::XMVectorScale(m_pos, scale);
-		g_CamPos = DirectX::XMVectorAdd(g_CamFocus, m_pos);
+		//DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
+		//m_pos = DirectX::XMVectorScale(m_pos, scale);
+		//g_CamPos = DirectX::XMVectorAdd(g_CamFocus, m_pos);
 	}
 
 
@@ -541,11 +562,17 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 
 	{
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
-		m_mouse = DirectX::XMVector4Transform(m_mouse, DirectX::XMMatrixInverse(nullptr, g_View));
-
 		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)m_lx * 2 / NNN::Misc::GetClientWidth(false) - 1) / g_Projection.r[0].m128_f32[0], -((float)m_ly * 2 / NNN::Misc::GetClientHeight(false) - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
-		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_View);
+		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
+		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
+		DirectX::XMMATRIX rotinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixRotationX(-0.5 * 3.141592));
+
+		m_mouse = DirectX::XMVector4Transform(m_mouse, viewinv);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, rotinv);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, worinv);
 		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, viewinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, rotinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, worinv);
 
 		DirectX::XMFLOAT4 ori, dir;
 		DirectX::XMStoreFloat4(&ori, m_mouse);
@@ -557,59 +584,23 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 			inst->GetMap()->At(result.x, result.y, result.z).TexType = 2;
 			
 		}
-		//inst->GetMap()->CalcMask();
+		inst->GetMap()->CalcMask();
 		inst->GetMap()->CountRect();
-		//inst->InitBuffer(1.0);
+		inst->InitBuffer(1.0);
 		//{result.x},{result.y},{result.z},{result.w}\n
 	}
-
 	//static float p_x, p_y;
-	if (NNN::Input::Mouse::isMouseButtonDown(1)){
-		
-		DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos,g_CamFocus);
-		float length=DirectX::XMVectorGetX(DirectX::XMVector3Length(m_pos));
-		DirectX::XMVECTOR m_n1 = DirectX::XMVectorSet(0, 0, 1, 0);
-		DirectX::XMVECTOR m_n2 = DirectX::XMVectorSet(0, 1, 0, 0);
-		m_n1 = DirectX::XMVectorAbs(DirectX::XMVector3Cross(m_n1, m_pos));
-		if (DirectX::XMVectorGetX(DirectX::XMVector3Length(m_n1)) < 1.00)
-		{
-			//return;
-		}
-		m_pos = DirectX::XMVector4Transform(m_pos, DirectX::XMMatrixRotationAxis(m_n1,(float)dy / 150 * 3.14159));
-		m_n2 = DirectX::XMVector3Cross(m_n2, m_pos);
-		m_pos = DirectX::XMVector4Transform(m_pos, DirectX::XMMatrixRotationAxis(m_n2,(float)dx / 150 * 3.14159));
-		m_pos = DirectX::XMVector4Normalize(m_pos);
-		m_pos = DirectX::XMVectorScale(m_pos, length);
-		g_CamPos= DirectX::XMVectorAdd(m_pos, g_CamFocus);
-		
-
-		
+	if (NNN::Input::Mouse::isMouseButtonDown(1))
+	{
+		g_cam.RotationYawPitch((float)dx / 200, (float)dy / 200);
 	}
 	else if (NNN::Input::Mouse::isMouseButtonDown(0))
 	{
-
-		{
-			DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamPos, g_CamFocus);
-			//DirectX::XMVECTOR mousedelta = DirectX::XMVectorSet((float)- dy / 100, (float)/*dx*/ 0 / 100, 0, 0); //旋转90度
-			DirectX::XMVECTOR n = DirectX::XMVector4Normalize(m_pos);//法向量
-			DirectX::XMVECTOR mousedelta = DirectX::XMVectorScale(n, (float)dy / 50);
-			g_CamPos = DirectX::XMVectorAdd(g_CamPos, mousedelta);
-			g_CamFocus = DirectX::XMVectorAdd(g_CamFocus, mousedelta);
-		}
-
-		{
-			DirectX::XMVECTOR m_pos = DirectX::XMVectorSubtract(g_CamFocus, g_CamPos);
-			float length = DirectX::XMVectorGetX(DirectX::XMVector3Length(m_pos));
-			DirectX::XMVECTOR mousedelta = DirectX::XMVectorSet((float)-/*dy*/ 0 / 50 , (float)/*dx*/ dy / 50 , 0, 0);//旋转90度
-			DirectX::XMVECTOR n = DirectX::XMVector4Normalize(m_pos);//法向量
-			mousedelta = DirectX::XMVector3Cross(mousedelta, n);
-			m_pos = DirectX::XMVectorAdd(m_pos, mousedelta);
-			m_pos = DirectX::XMVector4Normalize(m_pos);
-			m_pos = DirectX::XMVectorScale(m_pos, length);
-			g_CamFocus = DirectX::XMVectorAdd(m_pos, g_CamPos);
-		}
+		g_cam.TranslationYawPitchRoll( 0, 0, (float)-dy / 10);
+		g_cam.RotationYawPitch( (float)dx / 200, 0);
+		//g_cam.TranslationYawPitchRoll((float)dx/10, 0, 0);
+		//g_cam.TranslationXYZ(0, 0, (float)dy / 10);
 	}
-	
 }
 
 
