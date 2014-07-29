@@ -46,7 +46,7 @@ namespace Nyan
 		}
 	};
 	
-	class Map3D : protected Minimal::MinimalArrayT<m_block>
+	class Map3D : protected Minimal::MinimalArrayT<m_block*>
 	{
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
@@ -57,15 +57,14 @@ namespace Nyan
 
 		int m_tcnt;//TextureCount
 		//void BuildVertexBuffer();//其实不应该把VertexBuffer写到Map中
+
+		void BlockCalcMask(const int& x, const int& y, const int& z);
+		void BlockRemoveMask(const int& x, const int& y, const int& z);
+		m_block* AllocateBlock(const int& i);
+		void DeallocateBlock(const m_block* ptr);
 	public:
-		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< m_block* > > m_FastTable;//为了加快检索效率的表
-		
-		
-		int CountRect();
-		int CalcMask();
-		void ClearMask();
-		void ReCalcMask();
-		void ReCalcBlock(const int&, const int&, const int&);
+		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< m_block > > m_FastTable;//实际存储数据的表
+		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< int > > m_Freeslot;//用于内存管理
 
 		void OutBinary(__in bool isSaveMask, __out SaveFormat& bin);
 
@@ -91,7 +90,7 @@ namespace Nyan
 		}
 
 		//实际存储方式为x-y-z形式(z层面上是连续存储的
-		inline m_block& At(const int &x,const int &y,const int &z)
+		inline m_block GetBlock(const int &x,const int &y,const int &z)
 		{
 			if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
 			{
@@ -100,15 +99,23 @@ namespace Nyan
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			return m_arr[m_col*m_row*x + m_col*y + z];
+			return *m_arr[m_col*m_row*x + m_col*y + z];
 		}
-		
-		Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
+
+		inline m_block At(const int &x, const int &y, const int &z)
+		{
+			return GetBlock(x, y, z);
+		}
+
+		void SetBlock(const int &x, const int &y, const int &z, const int val);
+
+		//Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<m_block>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc)
+			MinimalArrayT<m_block>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
+			m_Freeslot(alloc)
 		{
-			Fill(layer*row*col, -1,0);
+			FillSimple(layer*row*col, 0);
 		}
 	};
 	
