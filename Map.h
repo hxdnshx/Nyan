@@ -62,9 +62,22 @@ namespace Nyan
 		void BlockRemoveMask(const int& x, const int& y, const int& z);
 		m_block* AllocateBlock(const int& i);
 		void DeallocateBlock(const m_block* ptr);
+
+		inline m_block& Get(const int &x, const int &y, const int &z)
+		{
+			if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
+			{
+				::RaiseException(
+					EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
+					EXCEPTION_NONCONTINUABLE,
+					0, NULL); /* ～ fin ～ */
+			}
+			return *m_arr[m_col*m_row*x + m_col*y + z];
+		}
+		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< int > > m_Freeslot;//用于内存管理
 	public:
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< m_block > > m_FastTable;//实际存储数据的表
-		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< int > > m_Freeslot;//用于内存管理
+		
 
 		void OutBinary(__in bool isSaveMask, __out SaveFormat& bin);
 
@@ -86,6 +99,7 @@ namespace Nyan
 					0, NULL); /* ～ fin ～ */
 			}
 			m_FastTable.Fill(cnt - m_tcnt);
+			m_Freeslot.Fill(cnt - m_tcnt);
 			m_tcnt = m_FastTable.GetSize();
 		}
 

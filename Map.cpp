@@ -1,4 +1,5 @@
 #include "Map.h"
+#include <assert.h>
 
 namespace Nyan
 {
@@ -36,6 +37,7 @@ namespace Nyan
 			{
 				BlockRemoveMask(x, y, z);
 				DeallocateBlock(*ptr);
+				*ptr = 0;
 			}
 		}
 	}
@@ -57,5 +59,35 @@ namespace Nyan
 		return ret;
 	}
 
+	void Map3D::DeallocateBlock(const m_block* ptr)
+	{
+		int i = ptr->TexType;
+		int j;
+		assert(i != -1);
+		j = ptr - (m_FastTable[i].GetRaw());
+		assert(j >= 0);
+		m_Freeslot[i].Push(j);
+		m_FastTable[i][j].TexType = -1;
+	}
+
+	void Map3D::BlockCalcMask(const int& x, const int& y, const int& z)
+	{
+		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 0)		Get(x, y, z + 1).mask |= Down;
+		if (z > 0						&& At(x, y, z - 1).mask || Up == 0)			Get(x, y, z - 1).mask |= Up;
+		if (y < (int)m_row - 1	&& At(x, y + 1, z).mask || Right == 0)		Get(x, y + 1, z).mask |= Right;
+		if (y > 0						&& At(x, y - 1, z).mask || Left == 0)			Get(x, y - 1, z).mask |= Left;
+		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 0)		Get(x + 1, y, z).mask |= Back;
+		if (x > 0						&& At(x - 1, y, z).mask || Front == 0)		Get(x - 1, y, z).mask |= Front;
+	}
+
+	void Map3D::BlockRemoveMask(const int& x, const int& y, const int& z)
+	{
+		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 1)		Get(x, y, z + 1).mask &= 0xffffffff - Down;
+		if (z > 0						&& At(x, y, z - 1).mask || Up == 1)			Get(x, y, z - 1).mask &= 0xffffffff - Up;
+		if (y < (int)m_row - 1	&& At(x, y + 1, z).mask || Right == 1)		Get(x, y + 1, z).mask &= 0xffffffff - Right;
+		if (y > 0						&& At(x, y - 1, z).mask || Left == 1)			Get(x, y - 1, z).mask &= 0xffffffff - Left;
+		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 1)		Get(x + 1, y, z).mask &= 0xffffffff - Back;
+		if (x > 0						&& At(x - 1, y, z).mask || Front == 1)		Get(x - 1, y, z).mask &= 0xffffffff - Front;
+	}
 
 }
