@@ -29,8 +29,6 @@ namespace Nyan
 		//Precalculate buffersize
 		map->SetT(m_tptr.GetSize());
 		//tm_vsize = map->GetX()*map->GetY()*map->GetZ();
-		map->CalcMask();
-		tm_vsize = map->CountRect();
 		tm_isize = tm_vsize * 6;
 		tm_vsize *= 4;
 		if (tm_vsize > (int)m_vsize || tm_isize > (int)m_isize)
