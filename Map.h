@@ -8,6 +8,8 @@
 #define MINIMAL_USE_PROCESSHEAPARRAY
 #include "MinimalArray.hpp"
 
+//#define Nyan_Map_EnableMaskOptimization
+
 
 namespace Nyan
 {
@@ -57,9 +59,10 @@ namespace Nyan
 
 		int m_tcnt;//TextureCount
 		//void BuildVertexBuffer();//其实不应该把VertexBuffer写到Map中
-
+#if defined(Nyan_Map_EnableMaskOptimization)
 		void BlockCalcMask(const int& x, const int& y, const int& z);
 		void BlockRemoveMask(const int& x, const int& y, const int& z);
+#endif
 		m_block* AllocateBlock(const int& i);
 		void DeallocateBlock(const m_block* ptr);
 
@@ -126,7 +129,7 @@ namespace Nyan
 		//Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<m_block>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
+			MinimalArrayT<m_block*>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
 			m_Freeslot(alloc)
 		{
 			FillSimple(layer*row*col, 0);

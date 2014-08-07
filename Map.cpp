@@ -19,7 +19,9 @@ namespace Nyan
 			{
 				*ptr = AllocateBlock(val);
 				(*ptr)->TexType = val;
+#if defined(Nyan_Map_EnableMaskOptimization)
 				BlockCalcMask(x, y, z);
+#endif
 			}
 		}
 		else
@@ -35,7 +37,9 @@ namespace Nyan
 			}
 			else
 			{
+#if defined(Nyan_Map_EnableMaskOptimization)
 				BlockRemoveMask(x, y, z);
+#endif
 				DeallocateBlock(*ptr);
 				*ptr = 0;
 			}
@@ -70,6 +74,7 @@ namespace Nyan
 		m_FastTable[i][j].TexType = -1;
 	}
 
+#if defined(Nyan_Map_EnableMaskOptimization)
 	void Map3D::BlockCalcMask(const int& x, const int& y, const int& z)
 	{
 		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 0)		Get(x, y, z + 1).mask |= Down;
@@ -89,5 +94,6 @@ namespace Nyan
 		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 1)		Get(x + 1, y, z).mask &= 0xffffffff - Back;
 		if (x > 0						&& At(x - 1, y, z).mask || Front == 1)		Get(x - 1, y, z).mask &= 0xffffffff - Front;
 	}
+#endif
 
 }
