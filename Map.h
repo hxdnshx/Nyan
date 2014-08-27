@@ -8,7 +8,7 @@
 #define MINIMAL_USE_PROCESSHEAPARRAY
 #include "MinimalArray.hpp"
 
-//#define Nyan_Map_EnableMaskOptimization
+#define Nyan_Map_EnableMaskOptimization
 
 
 namespace Nyan
@@ -31,20 +31,28 @@ namespace Nyan
 		typedef m_block SelfType;
 		int TexType;
 		int mask;
+		int x, y, z;
 		m_block()
 		{
 			TexType = -1;
 			mask = 0;
+			x = y = z = 0;
 		}
 		m_block(const SelfType& src)
 		{
 			TexType = src.TexType;
 			mask = src.mask;
+			x = src.x;
+			y=src.y;
+			z = src.z;
 		}
 		m_block(int m_TexType, int m_mask)
 		{
 			TexType = m_TexType;
 			mask = m_mask;
+			x = 0;
+			y = 0;
+			z = 0;
 		}
 	};
 	

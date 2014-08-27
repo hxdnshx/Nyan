@@ -19,6 +19,9 @@ namespace Nyan
 			{
 				*ptr = AllocateBlock(val);
 				(*ptr)->TexType = val;
+				(*ptr)->x = x;
+				(*ptr)->y = y;
+				(*ptr)->z = z;
 #if defined(Nyan_Map_EnableMaskOptimization)
 				BlockCalcMask(x, y, z);
 #endif
@@ -34,6 +37,9 @@ namespace Nyan
 				nptr->mask = (*ptr)->mask;
 				DeallocateBlock(*ptr);
 				*ptr = nptr;
+				(*ptr)->x = x;
+				(*ptr)->y = y;
+				(*ptr)->z = z;
 			}
 			else
 			{

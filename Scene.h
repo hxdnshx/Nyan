@@ -31,11 +31,13 @@ namespace Nyan{
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 		typedef std::pair<int, int> RenderInfo;
 
+		int m_vremain;
+		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< std::pair<int,int> > > m_offset;
 		Minimal::MinimalArrayT< RenderInfo > m_rinfo;
 		
 		//这里有一个约定,即每个场景使用的纹理名不会相同
 		//为了保证都能安全的释放
-		void InitBuffer(float scale);
+		void InitBuffer();
 		void Render(int startcol,int endLayer=-1);
 
 		/*
@@ -55,7 +57,7 @@ namespace Nyan{
 		inline Map3D* GetMap(){return map;}
 		void ImportTexture(__in wchar_t* ptr);
 		Scene(Minimal::IMinimalAllocator *alloc) :
-			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0)
+			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0), m_offset(alloc)
 		{
 			m_alloc = alloc;
 			m_tstr = L"";

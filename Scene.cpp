@@ -1,5 +1,7 @@
 #include "Scene.h"
 
+#define scale 1.0
+
 namespace Nyan
 {
 	void Scene::InitScene(__in int x, __in int y, __in int z)
@@ -19,24 +21,500 @@ namespace Nyan
 		map->SetT(map->GetT() + 1);
 	}
 
-	
-
+	/*
 	void Scene::InitBuffer(float scale)
 	{
+	HRESULT hr;
+	NNN::es_GraphAPI graph_api = NNN::GetGraphAPI();
+	int tm_vsize, tm_isize;
+	//Precalculate buffersize
+	map->SetT(m_tptr.GetSize());
+	//tm_vsize = map->GetX()*map->GetY()*map->GetZ();
+	tm_isize = tm_vsize * 6;
+	tm_vsize *= 4;
+	if (tm_vsize > (int)m_vsize || tm_isize > (int)m_isize)
+	{
+	SAFE_RELEASE(m_vb);
+	SAFE_RELEASE(m_ib);
+	m_vsize = tm_vsize;
+	m_isize = tm_isize;
+	}
+	if (m_vb == nullptr)
+	{
+	if (map == nullptr)
+	{
+	return;
+	}
+
+
+	//NNN::SetLogError_nnnEngine(true);
+	//NNN::SetLogError_nnnLib(true);
+	//m_vb = nullptr;
+	//m_ib = nullptr;
+	m_vb = new struct NNN::Buffer::s_VertexBuffer();
+	m_ib = new struct NNN::Buffer::s_IndexBuffer();
+
+	switch (graph_api)
+	{
+	#if (NNN_PLATFORM == NNN_PLATFORM_WIN32) || (NNN_PLATFORM == NNN_PLATFORM_WP8)
+	case NNN::es_GraphAPI::DX11:
+	V(m_vb->Init_DX11(NULL, sizeof(VertexType)*m_vsize, D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
+	V(m_ib->Init_DX11(NULL, sizeof(WORD)*m_isize, D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
+	break;
+	#endif	// NNN_PLATFORM_WIN32 || NNN_PLATFORM_WP8
+
+	#if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
+	case NNN::es_GraphAPI::DX9:
+	V(m_vb->Init_DX9(nullptr, sizeof(VertexType)*m_vsize));
+	V(m_ib->Init_DX9(nullptr, sizeof(WORD)*m_isize));
+	break;
+	#endif	// NNN_PLATFORM_WIN32
+
+	#if (NNN_PLATFORM != NNN_PLATFORM_WP8)
+	case NNN::es_GraphAPI::OpenGL:
+	V(m_vb->Init_OpenGL(nullptr, sizeof(VertexType)*m_vsize, GL_DYNAMIC_DRAW));
+	V(m_ib->Init_OpenGL(nullptr, sizeof(WORD)*m_isize, GL_DYNAMIC_DRAW));
+	break;
+	#endif	// !NNN_PLATFORM_WP8
+	}
+	}
+	Minimal::MinimalArrayT< VertexType > m_vlist(m_alloc);
+	Minimal::MinimalArrayT< WORD > m_ilist(m_alloc);
+	Minimal::MinimalArrayT< int > m_cnt(m_alloc);
+	VertexType vert;
+	m_block *ptr, *tptr;
+	int x, i, itmp;
+	bool flag;
+	int py, pz;
+	m_vlist.Grow(m_vsize);
+	m_ilist.Grow(m_isize);
+	m_rinfo.Clear();
+	m_rinfo.Push(std::make_pair(0, 0));
+	m_cnt.Fill(m_tptr.GetSize(), 0);
+	for (x = 0; x < map->GetX(); ++x)
+	{
+	//由于是连续的内存区域
+	ptr = &(map->At(x, 0, 0));
+	ptr = ptr + map->GetY()*map->GetZ();
+	for (i = 0; i < (int)m_tptr.GetSize(); ++i)
+	{
+	flag = false;
+	for (; m_cnt[i] < (int)(map->m_FastTable[i].GetSize()); ++(m_cnt[i]))
+	{
+	tptr = map->m_FastTable[i][m_cnt[i]];
+	//当前的渲染顺序在极端情况下可能会产生涉及Alpha处渲染错误
+	if (tptr < ptr)//确保X值是相同的
+	{
+	//++(m_cnt[i]);
+	//实际的渲染代码
+	//顶点格式相关代码注意
+	itmp = ptr - tptr;
+	pz = itmp % (map->GetZ());
+	pz = pz==0 ? 0 : (map->GetZ() - pz);
+	itmp += pz;
+	py = itmp / map->GetZ();
+	py = map->GetY() - py;
+	flag = true;
+
+
+	if ((tptr->mask & (Nyan::Down)) == 0)
+	{
+	itmp = m_vlist.GetSize();
+	vert.m_Color = 0xffffffff;
+	vert.m_Color_dx11_opengl = 0xffffffff;
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 0);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 1);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 2);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 3);
+	m_vlist.Push(vert);
+	m_ilist.Push((WORD)itmp + 3);
+	m_ilist.Push((WORD)itmp + 1);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 2);
+	m_ilist.Push((WORD)itmp + 3);
+	}
+	//continue;
+
+	if ((tptr->mask & (Nyan::Up)) == 0)
+	{
+	itmp = m_vlist.GetSize();
+	vert.m_Color = 0xffffffff;
+	vert.m_Color_dx11_opengl = 0xffffffff;
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 0);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 1);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 2);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 3);
+	m_vlist.Push(vert);
+	m_ilist.Push((WORD)itmp + 3);
+	m_ilist.Push((WORD)itmp + 1);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 2);
+	m_ilist.Push((WORD)itmp + 3);
+	}
+
+	//continue;
+
+	if ((tptr->mask & (Nyan::Left)) == 0)
+	{
+	itmp = m_vlist.GetSize();
+	vert.m_Color = 0xffffffff;
+	vert.m_Color_dx11_opengl = 0xffffffff;
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 0);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 1);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 2);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 3);
+	m_vlist.Push(vert);
+	m_ilist.Push((WORD)itmp + 3);
+	m_ilist.Push((WORD)itmp + 1);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 2);
+	m_ilist.Push((WORD)itmp + 3);
+	}
+
+	//continue;
+
+	if ((tptr->mask & (Nyan::Right)) == 0)
+	{
+	itmp = m_vlist.GetSize();
+	vert.m_Color = 0xffffffff;
+	vert.m_Color_dx11_opengl = 0xffffffff;
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 0);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 1);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 2);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 3);
+	m_vlist.Push(vert);
+	m_ilist.Push((WORD)itmp + 3);
+	m_ilist.Push((WORD)itmp + 1);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 2);
+	m_ilist.Push((WORD)itmp + 3);
+	}
+
+
+
+	if ((tptr->mask & (Nyan::Front)) == 0)
+	{
+	itmp = m_vlist.GetSize();
+	vert.m_Color = 0xffffffff;
+	vert.m_Color_dx11_opengl = 0xffffffff;
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 0);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 1);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 2);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 3);
+	m_vlist.Push(vert);
+	m_ilist.Push((WORD)itmp + 3);
+	m_ilist.Push((WORD)itmp + 1);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 2);
+	m_ilist.Push((WORD)itmp + 3);
+	}
+
+	//continue;
+
+	if ((tptr->mask & (Nyan::Back)) == 0)
+	{
+	itmp = m_vlist.GetSize();
+	vert.m_Color = 0xffffffff;
+	vert.m_Color_dx11_opengl = 0xffffffff;
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 0);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
+	vert.m_Tex = GetTexloc(i, 1);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 2);
+	m_vlist.Push(vert);
+	vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
+	vert.m_Tex = GetTexloc(i, 3);
+	m_vlist.Push(vert);
+	m_ilist.Push((WORD)itmp + 3);
+	m_ilist.Push((WORD)itmp + 1);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 0);
+	m_ilist.Push((WORD)itmp + 2);
+	m_ilist.Push((WORD)itmp + 3);
+	}
+
+
+	}
+	else
+	{
+	break;
+	}
+	}
+	if (flag)
+	{
+	m_rinfo.Push(std::make_pair((int)m_ilist.GetSize(), (int)i));
+	}
+	}
+	m_rinfo.Push(std::make_pair(x, -1));
+	}
+	m_rinfo.Push(std::make_pair(x, -1));
+	assert(m_ilist.GetSize() <= m_isize);
+	assert(m_vlist.GetSize() <= m_vsize);
+
+	{
+	float i;
+	i = m_tptr[0]->GetMaxU();
+	i = m_tptr[0]->GetMaxV();
+	}
+
+	m_vb->Map();
+	m_vb->Fill_Data(m_vlist.GetRaw(), sizeof(VertexType)*m_vlist.GetSize(), 0);
+	m_vb->Unmap();
+
+	m_ib->Map();
+	m_ib->Fill_Data(m_ilist.GetRaw(), sizeof(WORD)*m_ilist.GetSize(), 0);
+	m_ib->Unmap();
+	}
+	*/
+
+
+	void Scene::InitBuffer()
+	{
+		Minimal::MinimalArrayT< VertexType > m_vlist(m_alloc);
+		Minimal::MinimalArrayT< WORD > m_ilist(m_alloc);
+		int i, j;
+		int x, py, pz;
+		VertexType vert;
+		int itmp;
+		int length;
+		m_block* tptr;
+		m_offset.Fill(map->GetT());
+		m_vlist.Grow(100 + m_vsize);
+		m_ilist.Grow(100 + m_isize);
+		for (i = 0; i < map->GetT(); ++i)
+		{
+			m_offset[i].Clear();
+		}
+		for (i = 0; i < map->GetT(); ++i)
+		{
+			for (j = 0; j < (int)map->m_FastTable[i].GetSize();++j)
+			{
+				tptr = &(map->m_FastTable[i][j]);
+				x = tptr->x;
+				py = tptr->y;
+				pz = tptr->z;
+				m_offset[i].Push(std::pair<int,int>(m_vlist.GetSize(),0));
+				length = 0;
+				if ((tptr->mask & (Nyan::Down)) == 0)
+				{
+					++length;
+					itmp = m_vlist.GetSize();
+					vert.m_Color = 0xffffffff;
+					vert.m_Color_dx11_opengl = 0xffffffff;
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 0);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 1);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 2);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 3);
+					m_vlist.Push(vert);
+					m_ilist.Push((WORD)itmp + 3);
+					m_ilist.Push((WORD)itmp + 1);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 2);
+					m_ilist.Push((WORD)itmp + 3);
+				}
+				//continue;
+
+				if ((tptr->mask & (Nyan::Up)) == 0)
+				{
+					++length;
+					itmp = m_vlist.GetSize();
+					vert.m_Color = 0xffffffff;
+					vert.m_Color_dx11_opengl = 0xffffffff;
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 0);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 1);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 2);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 3);
+					m_vlist.Push(vert);
+					m_ilist.Push((WORD)itmp + 3);
+					m_ilist.Push((WORD)itmp + 1);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 2);
+					m_ilist.Push((WORD)itmp + 3);
+				}
+
+				//continue;
+
+				if ((tptr->mask & (Nyan::Left)) == 0)
+				{
+					++length;
+					itmp = m_vlist.GetSize();
+					vert.m_Color = 0xffffffff;
+					vert.m_Color_dx11_opengl = 0xffffffff;
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 0);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 1);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 2);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 3);
+					m_vlist.Push(vert);
+					m_ilist.Push((WORD)itmp + 3);
+					m_ilist.Push((WORD)itmp + 1);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 2);
+					m_ilist.Push((WORD)itmp + 3);
+				}
+
+				//continue;
+
+				if ((tptr->mask & (Nyan::Right)) == 0)
+				{
+					++length;
+					itmp = m_vlist.GetSize();
+					vert.m_Color = 0xffffffff;
+					vert.m_Color_dx11_opengl = 0xffffffff;
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 0);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 1);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 2);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 3);
+					m_vlist.Push(vert);
+					m_ilist.Push((WORD)itmp + 3);
+					m_ilist.Push((WORD)itmp + 1);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 2);
+					m_ilist.Push((WORD)itmp + 3);
+				}
+
+
+
+				if ((tptr->mask & (Nyan::Front)) == 0)
+				{
+					++length;
+					itmp = m_vlist.GetSize();
+					vert.m_Color = 0xffffffff;
+					vert.m_Color_dx11_opengl = 0xffffffff;
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 0);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 1);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 2);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 3);
+					m_vlist.Push(vert);
+					m_ilist.Push((WORD)itmp + 3);
+					m_ilist.Push((WORD)itmp + 1);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 2);
+					m_ilist.Push((WORD)itmp + 3);
+				}
+
+				//continue;
+
+				if ((tptr->mask & (Nyan::Back)) == 0)
+				{
+					++length;
+					itmp = m_vlist.GetSize();
+					vert.m_Color = 0xffffffff;
+					vert.m_Color_dx11_opengl = 0xffffffff;
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 0);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
+					vert.m_Tex = GetTexloc(i, 1);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 2);
+					m_vlist.Push(vert);
+					vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
+					vert.m_Tex = GetTexloc(i, 3);
+					m_vlist.Push(vert);
+					m_ilist.Push((WORD)itmp + 3);
+					m_ilist.Push((WORD)itmp + 1);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 0);
+					m_ilist.Push((WORD)itmp + 2);
+					m_ilist.Push((WORD)itmp + 3);
+				}
+
+				m_offset[i].Top().second = length;
+			}
+		}
+
 		HRESULT hr;
 		NNN::es_GraphAPI graph_api = NNN::GetGraphAPI();
-		int tm_vsize, tm_isize;
-		//Precalculate buffersize
-		map->SetT(m_tptr.GetSize());
-		//tm_vsize = map->GetX()*map->GetY()*map->GetZ();
-		tm_isize = tm_vsize * 6;
-		tm_vsize *= 4;
-		if (tm_vsize > (int)m_vsize || tm_isize > (int)m_isize)
+		if (m_vlist.GetSize() > m_vsize || m_ilist.GetSize() > m_isize)
 		{
 			SAFE_RELEASE(m_vb);
 			SAFE_RELEASE(m_ib);
-			m_vsize = tm_vsize;
-			m_isize = tm_isize;
+			m_vsize = m_vlist.GetSize();
+			m_isize = m_ilist.GetSize();
 		}
 		if (m_vb == nullptr)
 		{
@@ -57,248 +535,26 @@ namespace Nyan
 			{
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32) || (NNN_PLATFORM == NNN_PLATFORM_WP8)
 			case NNN::es_GraphAPI::DX11:
-				V(m_vb->Init_DX11(NULL, sizeof(VertexType)*m_vsize, D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
-				V(m_ib->Init_DX11(NULL, sizeof(WORD)*m_isize, D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
+				V(m_vb->Init_DX11(NULL, sizeof(VertexType)*(m_vsize+100), D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
+				V(m_ib->Init_DX11(NULL, sizeof(WORD)*(m_isize+600), D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
 				break;
 #endif	// NNN_PLATFORM_WIN32 || NNN_PLATFORM_WP8
 
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
 			case NNN::es_GraphAPI::DX9:
-				V(m_vb->Init_DX9(nullptr, sizeof(VertexType)*m_vsize));
-				V(m_ib->Init_DX9(nullptr, sizeof(WORD)*m_isize));
+				V(m_vb->Init_DX9(nullptr, sizeof(VertexType)*(m_vsize+100)));
+				V(m_ib->Init_DX9(nullptr, sizeof(WORD)*(m_isize+600)));
 				break;
 #endif	// NNN_PLATFORM_WIN32
 
 #if (NNN_PLATFORM != NNN_PLATFORM_WP8)
 			case NNN::es_GraphAPI::OpenGL:
-				V(m_vb->Init_OpenGL(nullptr, sizeof(VertexType)*m_vsize, GL_DYNAMIC_DRAW));
-				V(m_ib->Init_OpenGL(nullptr, sizeof(WORD)*m_isize, GL_DYNAMIC_DRAW));
+				V(m_vb->Init_OpenGL(nullptr, sizeof(VertexType)*(m_vsize+100), GL_DYNAMIC_DRAW));
+				V(m_ib->Init_OpenGL(nullptr, sizeof(WORD)*(m_isize+600), GL_DYNAMIC_DRAW));
 				break;
 #endif	// !NNN_PLATFORM_WP8
 			}
 		}
-		Minimal::MinimalArrayT< VertexType > m_vlist(m_alloc);
-		Minimal::MinimalArrayT< WORD > m_ilist(m_alloc);
-		Minimal::MinimalArrayT< int > m_cnt(m_alloc);
-		VertexType vert;
-		m_block *ptr, *tptr;
-		int x, i, itmp;
-		bool flag;
-		int py, pz;
-		m_vlist.Grow(m_vsize);
-		m_ilist.Grow(m_isize);
-		m_rinfo.Clear();
-		m_rinfo.Push(std::make_pair(0, 0));
-		m_cnt.Fill(m_tptr.GetSize(), 0);
-		for (x = 0; x < map->GetX(); ++x)
-		{
-			//由于是连续的内存区域
-			ptr = &(map->At(x, 0, 0));
-			ptr = ptr + map->GetY()*map->GetZ();
-			for (i = 0; i < (int)m_tptr.GetSize(); ++i)
-			{
-				flag = false;
-				for (; m_cnt[i] < (int)(map->m_FastTable[i].GetSize()); ++(m_cnt[i]))
-				{
-					tptr = map->m_FastTable[i][m_cnt[i]];
-					//当前的渲染顺序在极端情况下可能会产生涉及Alpha处渲染错误
-					if (tptr < ptr)//确保X值是相同的
-					{
-						//++(m_cnt[i]);
-						//实际的渲染代码
-						//顶点格式相关代码注意
-						itmp = ptr - tptr;
-						pz = itmp % (map->GetZ());
-						pz = pz==0 ? 0 : (map->GetZ() - pz);
-						itmp += pz;
-						py = itmp / map->GetZ();
-						py = map->GetY() - py;
-						flag = true;
-
-
-						if ((tptr->mask & (Nyan::Down)) == 0)
-						{
-							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
-							vert.m_Color_dx11_opengl = 0xffffffff;
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 0);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 1);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 2);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 3);
-							m_vlist.Push(vert);
-							m_ilist.Push((WORD)itmp + 3);
-							m_ilist.Push((WORD)itmp + 1);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 2);
-							m_ilist.Push((WORD)itmp + 3);
-						}
-						//continue;
-
-						if ((tptr->mask & (Nyan::Up)) == 0)
-						{
-							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
-							vert.m_Color_dx11_opengl = 0xffffffff;
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 0);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 1);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 2);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 3);
-							m_vlist.Push(vert);
-							m_ilist.Push((WORD)itmp + 3);
-							m_ilist.Push((WORD)itmp + 1);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 2);
-							m_ilist.Push((WORD)itmp + 3);
-						}
-
-						//continue;
-
-						if ((tptr->mask & (Nyan::Left)) == 0)
-						{
-							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
-							vert.m_Color_dx11_opengl = 0xffffffff;
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 0);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 1);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 2);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 3);
-							m_vlist.Push(vert);
-							m_ilist.Push((WORD)itmp + 3);
-							m_ilist.Push((WORD)itmp + 1);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 2);
-							m_ilist.Push((WORD)itmp + 3);
-						}
-
-						//continue;
-
-						if ((tptr->mask & (Nyan::Right)) == 0)
-						{
-							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
-							vert.m_Color_dx11_opengl = 0xffffffff;
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 0);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 1);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 2);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 3);
-							m_vlist.Push(vert);
-							m_ilist.Push((WORD)itmp + 3);
-							m_ilist.Push((WORD)itmp + 1);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 2);
-							m_ilist.Push((WORD)itmp + 3);
-						}
-
-
-
-						if ((tptr->mask & (Nyan::Front)) == 0)
-						{
-							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
-							vert.m_Color_dx11_opengl = 0xffffffff;
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 0);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 1);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 2);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 3);
-							m_vlist.Push(vert);
-							m_ilist.Push((WORD)itmp + 3);
-							m_ilist.Push((WORD)itmp + 1);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 2);
-							m_ilist.Push((WORD)itmp + 3);
-						}
-
-						//continue;
-
-						if ((tptr->mask & (Nyan::Back)) == 0)
-						{
-							itmp = m_vlist.GetSize();
-							vert.m_Color = 0xffffffff;
-							vert.m_Color_dx11_opengl = 0xffffffff;
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 0);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale);
-							vert.m_Tex = GetTexloc(i, 1);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 2);
-							m_vlist.Push(vert);
-							vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale);
-							vert.m_Tex = GetTexloc(i, 3);
-							m_vlist.Push(vert);
-							m_ilist.Push((WORD)itmp + 3);
-							m_ilist.Push((WORD)itmp + 1);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 0);
-							m_ilist.Push((WORD)itmp + 2);
-							m_ilist.Push((WORD)itmp + 3);
-						}
-
-
-					}
-					else
-					{
-						break;
-					}
-				}
-				if (flag)
-				{
-					m_rinfo.Push(std::make_pair((int)m_ilist.GetSize(), (int)i));
-				}
-			}
-			m_rinfo.Push(std::make_pair(x, -1));
-		}
-		m_rinfo.Push(std::make_pair(x, -1));
-		assert(m_ilist.GetSize() <= m_isize);
-		assert(m_vlist.GetSize() <= m_vsize);
-
-		{
-			float i;
-			i = m_tptr[0]->GetMaxU();
-			i = m_tptr[0]->GetMaxV();
-		}
-
 		m_vb->Map();
 		m_vb->Fill_Data(m_vlist.GetRaw(), sizeof(VertexType)*m_vlist.GetSize(), 0);
 		m_vb->Unmap();
@@ -306,6 +562,8 @@ namespace Nyan
 		m_ib->Map();
 		m_ib->Fill_Data(m_ilist.GetRaw(), sizeof(WORD)*m_ilist.GetSize(), 0);
 		m_ib->Unmap();
+
+		m_vremain = 100;
 	}
 
 	DirectX::XMFLOAT2 Scene::GetTexloc(int texID, int loc)
