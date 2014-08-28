@@ -587,45 +587,8 @@ namespace Nyan
 		//NNN::Device::DeviceContext::Draw(4);
 
 
-		if (endLayer == -1)
-		{
-			endLayer = map->GetX();
-		}
-
-		//Skip Layer
-		for (i = 1; i < (int)m_rinfo.GetSize(); ++i)
-		{
-			if (curx >= startLayer)
-			{
-				break;
-			}
-			if (m_rinfo[i].second == -1)
-			{
-				curx = m_rinfo[i].first;
-			}
-			else
-			{
-				startindex = m_rinfo[i].first;
-			}
-		}
-
-		for (; i < (int)m_rinfo.GetSize(); ++i)
-		{
-			if (m_rinfo[i].second == -1)
-			{
-				if (m_rinfo[i].first == endLayer)
-				{
-					break;
-				}
-			}
-			else
-			{
-				
-				effect->SetResource("g_Texture", (m_tptr[m_rinfo[i].second]), 0);
-				NNN::Device::DeviceContext::DrawIndexed(m_rinfo[i].first - startindex, startindex, 0, (m_rinfo[i].first - startindex) / 3);
-				startindex = m_rinfo[i].first;
-			}
-		}
+		NNN::Device::DeviceContext::DrawIndexed(m_isize);
+		
 		NNN::Device::DeviceContext::EndEffect();
 	}
 

@@ -32,6 +32,7 @@ namespace Nyan{
 		typedef std::pair<int, int> RenderInfo;
 
 		int m_vremain;
+		//用于存储每个体素(?)渲染的内容在缓存中的位置
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< std::pair<int,int> > > m_offset;
 		Minimal::MinimalArrayT< RenderInfo > m_rinfo;
 		
