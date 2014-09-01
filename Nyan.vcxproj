@@ -490,6 +490,7 @@
     <ClCompile Include="imports.cpp" />
     <ClCompile Include="opengl.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SelectRect.cpp" />
     <ClCompile Include="sensors.cpp" />
     <ClCompile Include="WP8\wp8.cpp" />
   </ItemGroup>
@@ -499,6 +500,7 @@
     <ClInclude Include="Android\com_nnn_lib.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Line.h" />
+    <ClInclude Include="SelectRect.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Condition="'$(Configuration)'=='Debug_wp8' or '$(Configuration)'=='Release_wp8'" Include="platform.winmd">

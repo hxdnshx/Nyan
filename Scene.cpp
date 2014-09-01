@@ -7,17 +7,29 @@ namespace Nyan
 	void Scene::InitScene(__in int x, __in int y, __in int z)
 	{
 		HRESULT hr;
-		NNN::es_GraphAPI graph_api = NNN::GetGraphAPI();
 		map = new Map3D(m_alloc, x, y, z);
+	}
+
+	void Scene::RepackTexture()
+	{
+		m_flagrepack = false;
+		m_tptr.Clear();
+		m_pak.Repack();
+		for (int i = 0; i < m_Texture.GetSize(); ++i)
+		{
+			m_tptr.Push(m_pak.GetTexturePiece(m_Texture[i].GetRaw()));
+		}
 	}
 
 	void Scene::ImportTexture(__in wchar_t* ptr)
 	{
 		HRESULT hr;
-		NNN::Texture::c_Texture * tptr;
-		V(NNN::Texture::Add(ptr, ptr, 0xffff00ff, true));
-		tptr = NNN::Texture::Find(ptr);
-		m_tptr.Push(tptr);
+		NNN::Texture::s_TexturePiece* tptr;
+		V(m_pak.Add_Texture(ptr));
+		m_flagrepack = true;
+		m_Texture.Fill(1,ptr);
+		//tptr = m_pak.GetTexturePiece(ptr);
+		//m_tptr.Push(tptr);
 		map->SetT(map->GetT() + 1);
 	}
 
@@ -321,6 +333,12 @@ namespace Nyan
 		int itmp;
 		int length;
 		m_block* tptr;
+
+		if (m_flagrepack == true)
+		{
+			RepackTexture();
+		}
+
 		m_offset.Fill(map->GetT());
 		m_vlist.Grow(100 + m_vsize);
 		m_ilist.Grow(100 + m_isize);
@@ -338,6 +356,10 @@ namespace Nyan
 				pz = tptr->z;
 				m_offset[i].Push(std::pair<int,int>(m_vlist.GetSize(),0));
 				length = 0;
+#if defined(Nyan_Map_EnableMaskOptimization)
+#else
+				tptr->mask=0;
+#endif
 				if ((tptr->mask & (Nyan::Down)) == 0)
 				{
 					++length;
@@ -568,7 +590,7 @@ namespace Nyan
 
 	DirectX::XMFLOAT2 Scene::GetTexloc(int texID, int loc)
 	{
-		return DirectX::XMFLOAT2((loc & 0x1) > 0 ? m_tptr[texID]->GetMaxU() : 0, (loc & 0x2) > 0 ? m_tptr[texID]->GetMaxV() : 0);
+		return DirectX::XMFLOAT2((loc & 0x1) > 0 ? m_tptr[texID]->m_max_u : m_tptr[texID]->m_min_u, (loc & 0x2) > 0 ? m_tptr[texID]->m_max_v : m_tptr[texID]->m_min_v);
 	}
 
 	void Scene::Render(int startLayer, int endLayer)
@@ -582,6 +604,8 @@ namespace Nyan
 		NNN::Device::DeviceContext::IASetVertexBuffers(m_vb, sizeof(VertexType));
 		NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+		effect->SetResource("g_Texture", m_pak.GetPackTexture(),0);
+
 		NNN::Device::DeviceContext::SetEffect(effect, NNN_SHADER_LIBS_TEXTURE_COLORTEXTURE_DX9_TECH_NAME);
 
 		//NNN::Device::DeviceContext::Draw(4);
@@ -594,11 +618,7 @@ namespace Nyan
 
 	Scene::~Scene()
 	{
-		for (int i = 0; i < (int)m_tptr.GetSize(); ++i)
-		{
-			//SAFE_RELEASE(m_tptr[i]);
-			NNN::Texture::Release(m_tptr[i]);
-		}
+		m_pak.CleanUp();
 		SAFE_RELEASE(m_vb);
 		SAFE_RELEASE(m_ib);
 		delete map;

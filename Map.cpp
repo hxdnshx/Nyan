@@ -12,18 +12,25 @@ namespace Nyan
 				EXCEPTION_NONCONTINUABLE,
 				0, NULL); /* бл fin бл */
 		}
-		m_block** ptr;
-		if (*(ptr = &(m_arr[m_col*m_row*x + m_col*y + z])) == 0)
+		int loc;
+		int offset;
+		m_block* ptr;
+		offset = m_col*m_row*x + m_col*y + z;
+		if (m_arr[offset].first==-1)
 		{
 			if (val != -1)
 			{
-				*ptr = AllocateBlock(val);
-				(*ptr)->TexType = val;
-				(*ptr)->x = x;
-				(*ptr)->y = y;
-				(*ptr)->z = z;
+				loc = AllocateBlock(val);
+				ptr = &(m_FastTable[val][loc]);
+				(ptr)->TexType = val;
+				(ptr)->x = x;
+				(ptr)->y = y;
+				(ptr)->z = z;
+				m_arr[offset].first = val;
+				m_arr[offset].second = loc;
 #if defined(Nyan_Map_EnableMaskOptimization)
 				BlockCalcMask(x, y, z);
+				BlockGetMask(x, y, z);
 #endif
 			}
 		}
@@ -31,50 +38,56 @@ namespace Nyan
 		{
 			if (val != -1)
 			{
+				int nloc;
 				m_block* nptr;
-				nptr = AllocateBlock(val);
-				nptr->TexType = (*ptr)->TexType;
-				nptr->mask = (*ptr)->mask;
-				DeallocateBlock(*ptr);
-				*ptr = nptr;
-				(*ptr)->x = x;
-				(*ptr)->y = y;
-				(*ptr)->z = z;
+				nloc = AllocateBlock(val);
+				nptr = &(m_FastTable[val][nloc]);
+				ptr = &(m_FastTable[m_arr[offset].first][m_arr[offset].second]);
+				nptr->TexType = val;
+				nptr->mask = (ptr)->mask;
+				DeallocateBlock(m_arr[offset].first,m_arr[offset].second);
+				(nptr)->x = x;
+				(nptr)->y = y;
+				(nptr)->z = z;
+				m_arr[offset].first = val;
+				m_arr[offset].second = nloc;
 			}
 			else
 			{
 #if defined(Nyan_Map_EnableMaskOptimization)
 				BlockRemoveMask(x, y, z);
 #endif
-				DeallocateBlock(*ptr);
-				*ptr = 0;
+				DeallocateBlock(m_arr[offset].first, m_arr[offset].second);
 			}
 		}
 	}
 
-	m_block* Map3D::AllocateBlock(const int& i)
+	int Map3D::AllocateBlock(const int& i)
 	{
+		int loc;
 		m_block* ret;
 		if (m_Freeslot[i].GetSize() > 0)
 		{
-			ret= &(m_FastTable[i][m_Freeslot[i].Top()]);
+			loc = m_Freeslot[i].Top();
+			//ret= &(m_FastTable[i][m_Freeslot[i].Top()]);
 			m_Freeslot[i].Pop();
 		}
 		else
 		{
-			m_FastTable[i].FillSimple(1, 0);
-			ret = &(m_FastTable[i][m_FastTable[i].GetSize() - 1]);
-			ret->TexType = -1;
+			loc = m_FastTable[i].GetSize();
+			m_FastTable[i].Fill(1, -1, -1);
+			//m_FastTable[i].FillSimple(1, 0);
+			//ret = &(m_FastTable[i].Top());
 		}
-		return ret;
+		return loc;
 	}
 
-	void Map3D::DeallocateBlock(const m_block* ptr)
+	void Map3D::DeallocateBlock(const int& val, const int& loc)
 	{
-		int i = ptr->TexType;
+		int i = val;
 		int j;
 		assert(i != -1);
-		j = ptr - (m_FastTable[i].GetRaw());
+		j = loc;
 		assert(j >= 0);
 		m_Freeslot[i].Push(j);
 		m_FastTable[i][j].TexType = -1;
@@ -83,22 +96,38 @@ namespace Nyan
 #if defined(Nyan_Map_EnableMaskOptimization)
 	void Map3D::BlockCalcMask(const int& x, const int& y, const int& z)
 	{
-		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 0)		Get(x, y, z + 1).mask |= Down;
-		if (z > 0						&& At(x, y, z - 1).mask || Up == 0)			Get(x, y, z - 1).mask |= Up;
-		if (y < (int)m_row - 1	&& At(x, y + 1, z).mask || Right == 0)		Get(x, y + 1, z).mask |= Right;
-		if (y > 0						&& At(x, y - 1, z).mask || Left == 0)			Get(x, y - 1, z).mask |= Left;
-		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 0)		Get(x + 1, y, z).mask |= Back;
-		if (x > 0						&& At(x - 1, y, z).mask || Front == 0)		Get(x - 1, y, z).mask |= Front;
+		emptyblock.mask = -1;
+		if (z < (int)m_col - 1		&& (At(x, y, z + 1).mask & Down) == 0)		Get(x, y, z + 1).mask |= Down;
+		if (z > 0						&& (At(x, y, z - 1).mask & Up) == 0)			Get(x, y, z - 1).mask |= Up;
+		if (y < (int)m_row - 1	&& (At(x, y + 1, z).mask & Left) == 0)		Get(x, y + 1, z).mask |= Left;
+		if (y > 0						&& (At(x, y - 1, z).mask & Right) == 0)			Get(x, y - 1, z).mask |= Right;
+		if (x < (int)m_layer - 1	&& (At(x + 1, y, z).mask & Back) == 0)			Get(x + 1, y, z).mask |= Back;
+		if (x > 0						&& (At(x - 1, y, z).mask & Front) == 0)			Get(x - 1, y, z).mask |= Front;
 	}
 
 	void Map3D::BlockRemoveMask(const int& x, const int& y, const int& z)
 	{
-		if (z < (int)m_col - 1		&& At(x, y, z + 1).mask || Down == 1)		Get(x, y, z + 1).mask &= 0xffffffff - Down;
-		if (z > 0						&& At(x, y, z - 1).mask || Up == 1)			Get(x, y, z - 1).mask &= 0xffffffff - Up;
-		if (y < (int)m_row - 1	&& At(x, y + 1, z).mask || Right == 1)		Get(x, y + 1, z).mask &= 0xffffffff - Right;
-		if (y > 0						&& At(x, y - 1, z).mask || Left == 1)			Get(x, y - 1, z).mask &= 0xffffffff - Left;
-		if (x < (int)m_layer - 1	&& At(x + 1, y, z).mask || Back == 1)		Get(x + 1, y, z).mask &= 0xffffffff - Back;
-		if (x > 0						&& At(x - 1, y, z).mask || Front == 1)		Get(x - 1, y, z).mask &= 0xffffffff - Front;
+		emptyblock.mask = 0;
+		if (z < (int)m_col - 1		&& (At(x, y, z + 1).mask & Down) == 1)		Get(x, y, z + 1).mask &= 0xffffffff - Down;
+		if (z > 0						&& (At(x, y, z - 1).mask & Up) == 1)			Get(x, y, z - 1).mask &= 0xffffffff - Up;
+		if (y < (int)m_row - 1	&& (At(x, y + 1, z).mask & Left) == 1)			Get(x, y + 1, z).mask &= 0xffffffff - Left;
+		if (y > 0						&& (At(x, y - 1, z).mask & Right) == 1)			Get(x, y - 1, z).mask &= 0xffffffff - Right;
+		if (x < (int)m_layer - 1	&& (At(x + 1, y, z).mask & Back) == 1)			Get(x + 1, y, z).mask &= 0xffffffff - Back;
+		if (x > 0						&& (At(x - 1, y, z).mask & Front) == 1)			Get(x - 1, y, z).mask &= 0xffffffff - Front;
+	}
+
+	void Map3D::BlockGetMask(const int& x, const int& y, const int& z)
+	{
+		m_block* ptr = &Get(x, y, z);
+		ptr->mask = 0;
+		emptyblock.TexType = -1;
+		if (z < (int)m_col - 1		&& At(x, y, z + 1).TexType != -1)		ptr->mask |= Up;
+		if (z > 0						&& At(x, y, z - 1).TexType != -1)		ptr->mask |= Down;
+		if (y < (int)m_row - 1	&& At(x, y + 1, z).TexType != -1)		ptr->mask |= Right;
+		if (y > 0						&& At(x, y - 1, z).TexType != -1)		ptr->mask |= Left;
+		if (x < (int)m_layer - 1	&& At(x + 1, y, z).TexType != -1)		ptr->mask |= Front;
+		if (x > 0						&& At(x - 1, y, z).TexType != -1)		ptr->mask |= Back;
+		int test = ptr->mask;
 	}
 #endif
 

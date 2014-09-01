@@ -24,9 +24,11 @@ namespace Nyan{
 		Map3D *map;
 		NNN::Buffer::s_VertexBuffer *m_vb;
 		NNN::Buffer::s_IndexBuffer *m_ib;
-		Minimal::MinimalArrayT< NNN::Texture::c_Texture* > m_tptr;
+		Minimal::MinimalArrayT< NNN::Texture::s_TexturePiece* > m_tptr;
 		Minimal::MinimalStringT <wchar_t> m_tstr;
 		size_t m_vsize, m_isize;
+		void RepackTexture();
+		bool m_flagrepack;
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 		typedef std::pair<int, int> RenderInfo;
@@ -35,6 +37,8 @@ namespace Nyan{
 		//用于存储每个体素(?)渲染的内容在缓存中的位置
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< std::pair<int,int> > > m_offset;
 		Minimal::MinimalArrayT< RenderInfo > m_rinfo;
+		Minimal::MinimalArrayT< Minimal::ProcessHeapStringW > m_Texture;
+		NNN::Texture::c_PackTexture m_pak;
 		
 		//这里有一个约定,即每个场景使用的纹理名不会相同
 		//为了保证都能安全的释放
@@ -58,8 +62,10 @@ namespace Nyan{
 		inline Map3D* GetMap(){return map;}
 		void ImportTexture(__in wchar_t* ptr);
 		Scene(Minimal::IMinimalAllocator *alloc) :
-			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0), m_offset(alloc)
+			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0), m_offset(alloc),
+			m_pak(), m_Texture(alloc)
 		{
+			m_pak.Init(false);
 			m_alloc = alloc;
 			m_tstr = L"";
 			m_vb = nullptr;

@@ -56,9 +56,10 @@ namespace Nyan
 		}
 	};
 	
-	class Map3D : protected Minimal::MinimalArrayT<m_block*>
+	class Map3D : protected Minimal::MinimalArrayT< std::pair<short,short> >
 	{
 	public:
+		typedef std::pair<short, short> MemFormat;
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 	protected:
 		size_t m_layer;//x
@@ -70,9 +71,10 @@ namespace Nyan
 #if defined(Nyan_Map_EnableMaskOptimization)
 		void BlockCalcMask(const int& x, const int& y, const int& z);
 		void BlockRemoveMask(const int& x, const int& y, const int& z);
+		void BlockGetMask(const int& x, const int& y, const int& z);
 #endif
-		m_block* AllocateBlock(const int& i);
-		void DeallocateBlock(const m_block* ptr);
+		int AllocateBlock(const int& i);
+		void DeallocateBlock(const int& val, const int& loc);
 
 		inline m_block& Get(const int &x, const int &y, const int &z)
 		{
@@ -83,12 +85,16 @@ namespace Nyan
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			return *m_arr[m_col*m_row*x + m_col*y + z];
+			if (m_arr[m_col*m_row*x + m_col*y + z].first == -1)
+			{
+				return emptyblock;
+			}
+			return m_FastTable[m_arr[m_col*m_row*x + m_col*y + z].first][m_arr[m_col*m_row*x + m_col*y + z].second];
 		}
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< int > > m_Freeslot;//用于内存管理
 	public:
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< m_block > > m_FastTable;//实际存储数据的表
-		
+		m_block emptyblock;
 
 		void OutBinary(__in bool isSaveMask, __out SaveFormat& bin);
 
@@ -115,7 +121,7 @@ namespace Nyan
 		}
 
 		//实际存储方式为x-y-z形式(z层面上是连续存储的
-		inline m_block GetBlock(const int &x,const int &y,const int &z)
+		inline const m_block& GetBlock(const int &x,const int &y,const int &z)
 		{
 			if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
 			{
@@ -124,10 +130,27 @@ namespace Nyan
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ～ fin ～ */
 			}
-			return *m_arr[m_col*m_row*x + m_col*y + z];
+			if (m_arr[m_col*m_row*x + m_col*y + z].first == -1)
+			{
+				return emptyblock;
+			}
+			return m_FastTable[m_arr[m_col*m_row*x + m_col*y + z].first][m_arr[m_col*m_row*x + m_col*y + z].second];
 		}
 
-		inline m_block At(const int &x, const int &y, const int &z)
+		inline int GetBlockType(const int& x, const int& y, const int& z)
+		{
+			if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
+			{
+				::RaiseException(
+					EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
+					EXCEPTION_NONCONTINUABLE,
+					0, NULL); /* ～ fin ～ */
+			}
+			return m_arr[m_col*m_row*x + m_col*y + z].first;
+
+		}
+
+		inline const m_block& At(const int &x, const int &y, const int &z)
 		{
 			return GetBlock(x, y, z);
 		}
@@ -137,10 +160,10 @@ namespace Nyan
 		//Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<m_block*>(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
-			m_Freeslot(alloc)
+			MinimalArrayT<std::pair<short,short> >(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
+			m_Freeslot(alloc), emptyblock(-1,0)
 		{
-			FillSimple(layer*row*col, 0);
+			Fill(layer*row*col, -1,-1);
 		}
 	};
 	

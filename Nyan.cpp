@@ -19,6 +19,7 @@
 #include "Scene.h"
 #include"Map.h"
 #include "Line.h"
+#include "SelectRect.h"
 
 
 using namespace Minimal;
@@ -38,6 +39,7 @@ NNN::Camera::c_FirstPersonCamera g_cam;
 DirectX::XMMATRIX	g_World;
 DirectX::XMMATRIX	g_View;
 DirectX::XMMATRIX	g_Projection;
+Nyan::SelectRect *rect;
 
 WCHAR g_filename[MAX_PATH] = { 0 };
 UINT g_image_width = 0;
@@ -141,6 +143,8 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 
 	inst->Render(0);
 
+	rect->Render();
+
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
 	static WCHAR s_title_txt[100] = {0};
 
@@ -197,9 +201,12 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 
-	inst = new Nyan::Scene(&g_allocator);
+	V(NNN::Texture::Add(L"Texture_Default.png",L"Texture_Default.png", 0xffff00ff, true));
 
-	inst->InitScene(10,10,10);
+	inst = new Nyan::Scene(&g_allocator);
+	rect = new Nyan::SelectRect(&g_allocator);
+
+	inst->InitScene(128,128,128);
 	
 
 
@@ -305,7 +312,7 @@ void OnCreate_func(void* /*pUserContext*/)
 void OnDestroy_func(void* /*pUserContext*/)
 {
 	delete inst;
-
+	delete rect;
 	SAFE_RELEASE(g_vb);
 	SAFE_RELEASE(g_ib);
 	
@@ -461,9 +468,10 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 				DirectX::XMStoreFloat4(&ori, m_mouse);
 				DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
 				DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
+				//rect->SetRectLocation(-1, -1, -1, -1);
 				if (result.x != -1)
 				{
-
+					//rect->SetRectLocation(result.x, result.y, result.z, result.w);
 					if (inst->GetMap()->At(result.x, result.y, result.z).TexType != -1)
 					{
 						//inst->GetMap()->ReCalcBlock(result.x, result.y, result.z);// , inst->GetMap()->At(result.x, result.y, result.z).TexType, -1);
@@ -679,9 +687,11 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
 		ResetMap();
 		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
+		rect->SetRectLocation(-1, -1, -1, -1);
 		if (result.x != -1)
 		{
-			inst->GetMap()->SetBlock(result.x, result.y, result.z, 2);
+			rect->SetRectLocation(result.x,result.y,result.z,result.w);
+			//inst->GetMap()->SetBlock(result.x, result.y, result.z, 2);
 		}
 		//inst->GetMap()->CalcMask();
 		//inst->GetMap()->CountRect();

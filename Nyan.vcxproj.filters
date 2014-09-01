@@ -15,6 +15,7 @@
     </ClCompile>
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SelectRect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="WP8">
@@ -59,6 +60,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Line.h" />
+    <ClInclude Include="SelectRect.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
