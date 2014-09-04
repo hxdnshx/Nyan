@@ -5,6 +5,10 @@
 
 namespace Nyan
 {
+	DirectX::XMFLOAT2 SelectRect::GetTexloc(int loc)
+	{
+		return DirectX::XMFLOAT2((loc & 0x1) > 0 ? umax:umin, (loc & 0x2) > 0 ? vmax : vmin);
+	}
 	void SelectRect::SetRectLocation(const int& nx, const int& ny, const int& nz, const int& dir)
 	{
 		Minimal::MinimalArrayT< VertexType > m_vlist(m_alloc);
@@ -31,16 +35,16 @@ namespace Nyan
 				vert.m_Color = 0xffffffff;
 				vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale - 0.1);
-				//vert.m_Tex = GetTexloc(i, 0);
+				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 0)*scale - 0.1);
-				//vert.m_Tex = GetTexloc(i, 1);
+				vert.m_Tex = GetTexloc( 1);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 0)*scale - 0.1);
-				//vert.m_Tex = GetTexloc(i, 2);
+				vert.m_Tex = GetTexloc( 2);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 0)*scale - 0.1);
-				//vert.m_Tex = GetTexloc(i, 3);
+				vert.m_Tex = GetTexloc( 3);
 				m_vlist.Push(vert);
 				m_ilist.Push((WORD)itmp + 3);
 				m_ilist.Push((WORD)itmp + 1);
@@ -57,16 +61,16 @@ namespace Nyan
 				vert.m_Color = 0xffffffff;
 				vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale + 0.1);
-				//vert.m_Tex = GetTexloc(i, 0);
+				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale, (pz + 1)*scale + 0.1);
-				//vert.m_Tex = GetTexloc(i, 1);
+				vert.m_Tex = GetTexloc( 1);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 1)*scale + 0.1);
-				//vert.m_Tex = GetTexloc(i, 2);
+				vert.m_Tex = GetTexloc( 2);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale, (pz + 1)*scale + 0.1);
-				//vert.m_Tex = GetTexloc(i, 3);
+				vert.m_Tex = GetTexloc( 3);
 				m_vlist.Push(vert);
 				m_ilist.Push((WORD)itmp + 3);
 				m_ilist.Push((WORD)itmp + 1);
@@ -84,16 +88,16 @@ namespace Nyan
 				vert.m_Color = 0xffffffff;
 				vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale - 0.1, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 0);
+				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale - 0.1, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 1);
+				vert.m_Tex = GetTexloc( 1);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale - 0.1, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 2);
+				vert.m_Tex = GetTexloc( 2);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale - 0.1, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 3);
+				vert.m_Tex = GetTexloc( 3);
 				m_vlist.Push(vert);
 				m_ilist.Push((WORD)itmp + 3);
 				m_ilist.Push((WORD)itmp + 1);
@@ -111,16 +115,16 @@ namespace Nyan
 				vert.m_Color = 0xffffffff;
 				vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale + 0.1, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 0);
+				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale + 0.1, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 1);
+				vert.m_Tex = GetTexloc( 1);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale + 0.1, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 2);
+				vert.m_Tex = GetTexloc( 2);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 1)*scale + 0.1, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 3);
+				vert.m_Tex = GetTexloc( 3);
 				m_vlist.Push(vert);
 				m_ilist.Push((WORD)itmp + 3);
 				m_ilist.Push((WORD)itmp + 1);
@@ -138,16 +142,16 @@ namespace Nyan
 				vert.m_Color = 0xffffffff;
 				vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale + 0.1, (py + 0)*scale, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 0);
+				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale + 0.1, (py + 1)*scale, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 1);
+				vert.m_Tex = GetTexloc( 1);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale + 0.1, (py + 0)*scale, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 2);
+				vert.m_Tex = GetTexloc( 2);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale + 0.1, (py + 1)*scale, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 3);
+				vert.m_Tex = GetTexloc( 3);
 				m_vlist.Push(vert);
 				m_ilist.Push((WORD)itmp + 3);
 				m_ilist.Push((WORD)itmp + 1);
@@ -165,16 +169,16 @@ namespace Nyan
 				vert.m_Color = 0xffffffff;
 				vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale - 0.1, (py + 1)*scale, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 0);
+				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale - 0.1, (py + 0)*scale, (pz + 1)*scale);
-				//vert.m_Tex = GetTexloc(i, 1);
+				vert.m_Tex = GetTexloc( 1);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale - 0.1, (py + 1)*scale, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 2);
+				vert.m_Tex = GetTexloc( 2);
 				m_vlist.Push(vert);
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale - 0.1, (py + 0)*scale, (pz + 0)*scale);
-				//vert.m_Tex = GetTexloc(i, 3);
+				vert.m_Tex = GetTexloc( 3);
 				m_vlist.Push(vert);
 				m_ilist.Push((WORD)itmp + 3);
 				m_ilist.Push((WORD)itmp + 1);

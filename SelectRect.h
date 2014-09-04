@@ -21,7 +21,16 @@ namespace Nyan{
 		size_t m_vsize, m_isize;
 		int x, y, z, loc;
 		Minimal::IMinimalAllocator *m_alloc;
+		float umin, umax, vmin, vmax;
 	public:
+		inline DirectX::XMFLOAT2 GetTexloc(int loc);
+		void SetUV(float u_min, float u_max, float v_min, float v_max)
+		{
+			umin = u_min;
+			umax = u_max;
+			vmin = v_min;
+			vmax = v_max;
+		}
 		inline int GetX(){ return x; }
 		inline int GetY(){ return y; }
 		inline int GetZ(){ return z; }

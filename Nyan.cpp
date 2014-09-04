@@ -44,6 +44,7 @@ Nyan::SelectRect *rect;
 WCHAR g_filename[MAX_PATH] = { 0 };
 UINT g_image_width = 0;
 UINT g_image_height = 0;
+int ctex = 0;
 
 struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex g_vertices[4];
 
@@ -108,10 +109,10 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 
 	NNN::Device::DeviceContext::ClearRenderTargetView(ClearColor);
 	NNN::Device::DeviceContext::ClearDepthStencilView(D3D11_CLEAR_DEPTH, 1.0f, 0);
-	NNN::Device::DeviceContext::IASetIndexBuffer(g_ib);
-	NNN::Device::DeviceContext::IASetVertexBuffers(g_vb, sizeof(struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex));
+	//NNN::Device::DeviceContext::IASetIndexBuffer(g_ib);
+	//NNN::Device::DeviceContext::IASetVertexBuffers(g_vb, sizeof(struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex));
 	NNN::Device::DeviceContext::IASetInputLayout(NNN::Shader::ShaderLibs::Texture::ColorTexture::GetInputLayout());
-	NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
 
@@ -122,20 +123,20 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 	DirectX::XMMATRIX mRot = DirectX::XMMatrixRotationX(-0.5*3.141592);
 	DirectX::XMMATRIX mWVP =g_World * mRot * g_View * g_Projection;
-	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
+	//effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 
-	effect->SetResource("g_Texture", g_texture, 0);
+	//effect->SetResource("g_Texture", g_texture, 0);
 
 	// 设置渲染状态
-	NNN::State::SetRenderState(g_render_state);
+	//NNN::State::SetRenderState(g_render_state);
 
 	// 设置采样状态
-	NNN::State::SetSamplerState(g_sampler_state, 0, 0, g_texture);
+	//NNN::State::SetSamplerState(g_sampler_state, 0, 0, g_texture);
 
-	NNN::Device::DeviceContext::SetEffect(effect, NNN_SHADER_LIBS_TEXTURE_COLORTEXTURE_DX9_TECH_NAME);
-	NNN::Device::DeviceContext::DrawIndexed(6, 0, 0, 4);
+	//NNN::Device::DeviceContext::SetEffect(effect, NNN_SHADER_LIBS_TEXTURE_COLORTEXTURE_DX9_TECH_NAME);
+	//NNN::Device::DeviceContext::DrawIndexed(6, 0, 0, 4);
 	//NNN::Device::DeviceContext::Draw(4);
-	NNN::Device::DeviceContext::EndEffect();
+	//NNN::Device::DeviceContext::EndEffect();
 
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 	mWVP = g_World * mRot * g_View * g_Projection;
@@ -218,6 +219,9 @@ void OnCreate_func(void* /*pUserContext*/)
 
 
  	inst->InitBuffer();
+
+	ctex = 0;
+	rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
 	
 	//g_View = NNN::Misc::GetOrthoView();
 	
@@ -367,6 +371,11 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	{
 		return;
 	}
+	if (nChar == 'Q' || nChar == 'q')
+	{
+		ctex = (ctex + 1) % inst->GetMap()->GetT();
+		rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
+	}
 	if (nChar == 'I' || nChar == 'i')//(NNN::Input::Keyboard::isKeyDown(DIK_I))
 	{
 		if (!onceflag_I)
@@ -428,7 +437,7 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 					{
 						//inst->GetMap()->ReCalcBlock(nx, ny, nz);// , inst->GetMap()->At(nx, ny, nz).TexType, 0);
 						//inst->GetMap()->At(nx, ny, nz).TexType = 0;
-						inst->GetMap()->SetBlock(nx, ny, nz, 0);
+						inst->GetMap()->SetBlock(nx, ny, nz, ctex);
 						inst->InitBuffer();
 					}
 				}
@@ -472,7 +481,7 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 				if (result.x != -1)
 				{
 					//rect->SetRectLocation(result.x, result.y, result.z, result.w);
-					if (inst->GetMap()->At(result.x, result.y, result.z).TexType != -1)
+					if (result.z!=-1 && inst->GetMap()->At(result.x, result.y, result.z).TexType != -1)
 					{
 						//inst->GetMap()->ReCalcBlock(result.x, result.y, result.z);// , inst->GetMap()->At(result.x, result.y, result.z).TexType, -1);
 						inst->GetMap()->SetBlock(result.x, result.y, result.z, - 1);
@@ -685,7 +694,7 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		DirectX::XMFLOAT4 ori, dir;
 		DirectX::XMStoreFloat4(&ori, m_mouse);
 		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
-		ResetMap();
+		//ResetMap();
 		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
 		rect->SetRectLocation(-1, -1, -1, -1);
 		if (result.x != -1)
@@ -705,10 +714,27 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	}
 	else if (NNN::Input::Mouse::isMouseButtonDown(0))
 	{
-		g_cam.TranslationYawPitchRoll( 0, 0, (float)-dy / 10);
+
+		//g_cam.TranslationYawPitchRoll( 0, 0, (float)-dy / 10);
 		g_cam.RotationYawPitch( (float)dx / 200, 0);
 		//g_cam.TranslationYawPitchRoll((float)dx/10, 0, 0);
-		//g_cam.TranslationXYZ(0, 0, (float)dy / 10);
+		g_cam.TranslationXYZ(0, 0, (float)dy / 10);
+	}
+	if (NNN::Input::Keyboard::isKeyDown(DIK_W) || NNN::Input::Keyboard::isKeyDown(DIK_UP))
+	{
+		g_cam.TranslationYawPitchRoll(0, 0, (float)0.05);
+	}
+	if (NNN::Input::Keyboard::isKeyDown(DIK_S) || NNN::Input::Keyboard::isKeyDown(DIK_DOWN))
+	{
+		g_cam.TranslationYawPitchRoll(0, 0, (float)-0.05);
+	}
+	if (NNN::Input::Keyboard::isKeyDown(DIK_A) || NNN::Input::Keyboard::isKeyDown(DIK_LEFT))
+	{
+		g_cam.TranslationYawPitchRoll((float)-0.05,0,0);
+	}
+	if (NNN::Input::Keyboard::isKeyDown(DIK_D) || NNN::Input::Keyboard::isKeyDown(DIK_RIGHT))
+	{
+		g_cam.TranslationYawPitchRoll((float)0.05,0,0);
 	}
 }
 

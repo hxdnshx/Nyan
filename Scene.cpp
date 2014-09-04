@@ -338,6 +338,28 @@ namespace Nyan
 		{
 			RepackTexture();
 		}
+		//Ground
+
+		vert.m_Pos = DirectX::XMFLOAT3(0, 0, 0);
+		vert.m_Tex = GetTexloc(0, 0);
+		m_vlist.Push(vert);
+		vert.m_Pos = DirectX::XMFLOAT3(0, map->GetY()*scale, 0);
+		vert.m_Tex = GetTexloc(0, 1);
+		m_vlist.Push(vert);
+		vert.m_Pos = DirectX::XMFLOAT3(map->GetX(), 0, 0);
+		vert.m_Tex = GetTexloc(0, 2);
+		m_vlist.Push(vert);
+		vert.m_Pos = DirectX::XMFLOAT3(map->GetX(), map->GetY(), 0);
+		vert.m_Tex = GetTexloc(0, 3);
+		m_vlist.Push(vert);
+
+		itmp = 0;
+		m_ilist.Push((WORD)itmp + 3);
+		m_ilist.Push((WORD)itmp + 1);
+		m_ilist.Push((WORD)itmp + 0);
+		m_ilist.Push((WORD)itmp + 0);
+		m_ilist.Push((WORD)itmp + 2);
+		m_ilist.Push((WORD)itmp + 3);
 
 		m_offset.Fill(map->GetT());
 		m_vlist.Grow(100 + m_vsize);
@@ -776,6 +798,21 @@ namespace Nyan
 						}
 					}
 				}
+			}
+		}
+		//GroundCollision
+		if (bplane == -1 && m_groundflag)
+		{
+			tz = 0;
+			ty = (tz - src.p1.z)*src.n.y / src.n.z + src.p1.y;
+			tx = (tz - src.p1.z)*src.n.x / src.n.z + src.p1.x;
+			if (ty >= 0 && ty <= (map->GetY()) && tx >= 0 && tx <= (map->GetX()))
+			{
+				collflag = true;
+				bx = (int)tx;
+				by = (int)ty;
+				bz = -1;
+				bplane = Direction::Up;
 			}
 		}
 		return DirectX::XMFLOAT4(bx, by, bz, bplane);

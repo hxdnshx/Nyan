@@ -29,6 +29,7 @@ namespace Nyan{
 		size_t m_vsize, m_isize;
 		void RepackTexture();
 		bool m_flagrepack;
+		bool m_groundflag;
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 		typedef std::pair<int, int> RenderInfo;
@@ -44,6 +45,10 @@ namespace Nyan{
 		//为了保证都能安全的释放
 		void InitBuffer();
 		void Render(int startcol,int endLayer=-1);
+		NNN::Texture::c_Texture* GetPackedTexture(){ return m_pak.GetPackTexture(); }
+		inline NNN::Texture::s_TexturePiece* const GetPiece(int id){ return m_tptr[id]; }
+
+		void SetGroundVisiablity(bool val){ m_groundflag = val; }
 
 		/*
 			For Arg2:
@@ -63,7 +68,7 @@ namespace Nyan{
 		void ImportTexture(__in wchar_t* ptr);
 		Scene(Minimal::IMinimalAllocator *alloc) :
 			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0), m_offset(alloc),
-			m_pak(), m_Texture(alloc)
+			m_pak(), m_Texture(alloc), m_groundflag(true)
 		{
 			m_pak.Init(false);
 			m_alloc = alloc;
