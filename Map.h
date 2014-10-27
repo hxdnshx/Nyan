@@ -65,6 +65,8 @@ namespace Nyan
 		size_t m_layer;//x
 		size_t m_row;//y
 		size_t m_col;//z
+		//Minimal::MinimalArrayT< MemFormat > m_dirtydat;
+
 
 		int m_tcnt;//TextureCount
 		//void BuildVertexBuffer();//其实不应该把VertexBuffer写到Map中
@@ -92,11 +94,12 @@ namespace Nyan
 			return m_FastTable[m_arr[m_col*m_row*x + m_col*y + z].first][m_arr[m_col*m_row*x + m_col*y + z].second];
 		}
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< int > > m_Freeslot;//用于内存管理
+		void SetBlock_NoMask(const int &x, const int &y, const int &z, const int val);
 	public:
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< m_block > > m_FastTable;//实际存储数据的表
 		m_block emptyblock;
 
-		void OutBinary(__in bool isSaveMask, __out SaveFormat& bin);
+		void OutBinary(__out SaveFormat& bin);
 
 		
 		inline size_t GetX(){ return m_layer; }
@@ -161,7 +164,7 @@ namespace Nyan
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
 			MinimalArrayT<std::pair<short,short> >(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
-			m_Freeslot(alloc), emptyblock(-1,0)
+			m_Freeslot(alloc), emptyblock(-1, 0)//, m_dirtydat()
 		{
 			Fill(layer*row*col, -1,-1);
 		}

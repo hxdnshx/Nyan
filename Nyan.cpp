@@ -5,6 +5,8 @@
 // Desc : 最简单的空白项目
 //--------------------------------------------------------------------------------------
 
+#include <boost\random.hpp>
+
 #include "MinimalAllocator.hpp"
 
 #define MINIMAL_USE_PROCESSHEAPSTRING
@@ -22,6 +24,8 @@
 #include "SelectRect.h"
 
 
+
+
 using namespace Minimal;
 
 struct NNN::Buffer::s_VertexBuffer	*g_vb = nullptr;
@@ -30,6 +34,11 @@ class NNN::Texture::c_Texture		*g_texture = nullptr;
 
 class NNN::State::c_RenderState		*g_render_state = nullptr;
 class NNN::State::c_SamplerState	*g_sampler_state = nullptr;
+class NNN::GUI::c_GUI_System *g_gui;
+
+boost::mt19937 randomx(114514);
+boost::uniform_int<int> normdist(0,127);
+boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > sampler(randomx,normdist);
 
 
 //DirectX::XMVECTOR g_CamPos = { 10.0f, 10.0f, 10.0f, 0.0f };
@@ -176,6 +185,13 @@ void ResetMap()
 	inst->GetMap()->SetBlock(0, 0, 1, 0);
 	inst->GetMap()->SetBlock(0, 0, 2, 0);
 	inst->GetMap()->SetBlock(0, 0, 3, 0);
+	int i;
+	/*
+	for (i = 0; i < 5000; i++)
+	{
+		inst->GetMap()->SetBlock(sampler(), sampler(), sampler(), 1);
+	}
+	*/
 }
 
 /*==============================================================
@@ -214,6 +230,17 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst->ImportTexture(L"Texture_Default.png");
 	inst->ImportTexture(L"Texture_Selected.png");
 	inst->ImportTexture(L"Texture_Special.png");
+	inst->ImportTexture(L"Texture_01.png");
+	inst->ImportTexture(L"Texture_02.png");
+	inst->ImportTexture(L"Texture_03.png");
+	inst->ImportTexture(L"Texture_04.png");
+	inst->ImportTexture(L"Texture_05.png");
+	inst->ImportTexture(L"Texture_06.png");
+	inst->ImportTexture(L"Texture_07.png");
+	inst->ImportTexture(L"Texture_08.png");
+	inst->ImportTexture(L"Texture_09.png");
+	inst->ImportTexture(L"Texture_10.png");
+	inst->ImportTexture(L"Texture_11.png");
 
 	ResetMap();
 

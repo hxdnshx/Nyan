@@ -3,6 +3,59 @@
 
 namespace Nyan
 {
+	/*
+	void Map3D::SetBlock(const int &x, const int &y, const int &z, const int val)
+	{
+		if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
+		{
+			::RaiseException(
+				EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
+				EXCEPTION_NONCONTINUABLE,
+				0, NULL);
+		}
+		int loc;
+		int offset;
+		m_block* ptr;
+		offset = m_col*m_row*x + m_col*y + z;
+		if (m_arr[offset].first == -1)
+		{
+			if (val != -1)
+			{
+				loc = AllocateBlock(val);
+				ptr = &(m_FastTable[val][loc]);
+				(ptr)->TexType = val;
+				(ptr)->x = x;
+				(ptr)->y = y;
+				(ptr)->z = z;
+				m_arr[offset].first = val;
+				m_arr[offset].second = loc;
+			}
+		}
+		else
+		{
+			if (val != -1)
+			{
+				int nloc;
+				m_block* nptr;
+				nloc = AllocateBlock(val);
+				nptr = &(m_FastTable[val][nloc]);
+				ptr = &(m_FastTable[m_arr[offset].first][m_arr[offset].second]);
+				nptr->TexType = val;
+				nptr->mask = (ptr)->mask;
+				DeallocateBlock(m_arr[offset].first, m_arr[offset].second);
+				(nptr)->x = x;
+				(nptr)->y = y;
+				(nptr)->z = z;
+				m_arr[offset].first = val;
+				m_arr[offset].second = nloc;
+			}
+			else
+			{
+				DeallocateBlock(m_arr[offset].first, m_arr[offset].second);
+			}
+		}
+	}*/
+
 	void Map3D::SetBlock(const int &x, const int &y, const int &z, const int val)
 	{
 		if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)

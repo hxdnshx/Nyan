@@ -205,7 +205,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>..\..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>..\..\..\Src\MinimalLib\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\Src\MinimalLib\;E:\boost_1_54_0\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <IntDir>..\..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
@@ -236,7 +236,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>..\..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>..\..\..\Src\MinimalLib\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\Src\MinimalLib\;E:\boost_1_54_0\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <IntDir>..\..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
@@ -482,6 +482,7 @@
     </AntBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EditorGUI.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Nyan.cpp" />
     <ClCompile Include="Android\com_nnn_lib.cpp" />
@@ -495,6 +496,7 @@
     <ClCompile Include="WP8\wp8.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EditorGUI.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Nyan.h" />
     <ClInclude Include="Android\com_nnn_lib.h" />

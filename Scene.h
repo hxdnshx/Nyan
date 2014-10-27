@@ -30,6 +30,8 @@ namespace Nyan{
 		void RepackTexture();
 		bool m_flagrepack;
 		bool m_groundflag;
+		typedef std::pair < int, void* > DirtyData;
+		//Minimal::MinimalArrayT< DirtyData > m_DirtyList;
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 		typedef std::pair<int, int> RenderInfo;
@@ -44,6 +46,9 @@ namespace Nyan{
 		//这里有一个约定,即每个场景使用的纹理名不会相同
 		//为了保证都能安全的释放
 		void InitBuffer();
+		void UpdateBuffer();
+		inline void SetBlock(const int &x, const int &y, const int &z, const int val)
+		{}
 		void Render(int startcol,int endLayer=-1);
 		NNN::Texture::c_Texture* GetPackedTexture(){ return m_pak.GetPackTexture(); }
 		inline NNN::Texture::s_TexturePiece* const GetPiece(int id){ return m_tptr[id]; }

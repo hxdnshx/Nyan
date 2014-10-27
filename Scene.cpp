@@ -322,6 +322,7 @@ namespace Nyan
 	}
 	*/
 
+	
 
 	void Scene::InitBuffer()
 	{
@@ -664,6 +665,9 @@ namespace Nyan
 		int tmp;
 		bool collflag;
 		int i;
+		tx = 0;
+		ty = 0;
+		tz = 0;
 		for (x = 0; x < map->GetX(); ++x)
 		{
 			ta = src.p1.y + src.n.y*(x - src.p1.x) / (src.n.x); //larger
