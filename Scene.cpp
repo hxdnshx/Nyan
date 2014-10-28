@@ -377,7 +377,7 @@ namespace Nyan
 				x = tptr->x;
 				py = tptr->y;
 				pz = tptr->z;
-				m_offset[i].Push(std::pair<int,int>(m_vlist.GetSize(),0));
+				m_offset[i].Push(std::pair<int,int>(m_ilist.GetSize(),0));
 				length = 0;
 #if defined(Nyan_Map_EnableMaskOptimization)
 #else
@@ -548,7 +548,8 @@ namespace Nyan
 					m_ilist.Push((WORD)itmp + 3);
 				}
 
-				m_offset[i].Top().second = length;
+				m_offset[i].Top().second = length*6;
+
 			}
 		}
 
@@ -618,7 +619,7 @@ namespace Nyan
 
 	void Scene::Render(int startLayer, int endLayer)
 	{
-		int i = 0;
+		int i, j;
 		int curx = 0;
 		int startindex = 0;
 		class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
@@ -633,8 +634,21 @@ namespace Nyan
 
 		//NNN::Device::DeviceContext::Draw(4);
 
+		
+		for (i = 0; i < map->m_FastTable.GetSize(); ++i)
+		{
+			for (j = 0; j < map->m_FastTable[i].GetSize(); ++j)
+			{
+				auto obj = &(map->m_FastTable[i][j]);
+				if (obj->TexType != -1)
+				{
+					auto o2 = &(m_offset[i][j]);
+					NNN::Device::DeviceContext::DrawIndexed(o2->second, o2->first);
+				}
+			}
+		}
 
-		NNN::Device::DeviceContext::DrawIndexed(m_isize);
+		//NNN::Device::DeviceContext::DrawIndexed(m_isize);
 		
 		NNN::Device::DeviceContext::EndEffect();
 	}

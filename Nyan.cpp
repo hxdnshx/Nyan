@@ -54,6 +54,11 @@ WCHAR g_filename[MAX_PATH] = { 0 };
 UINT g_image_width = 0;
 UINT g_image_height = 0;
 int ctex = 0;
+int frame = 0;
+int ddx = 16;
+int ddy = 0;
+int ddz = 0;
+int mode = 0;
 
 struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex g_vertices[4];
 
@@ -147,12 +152,34 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	//NNN::Device::DeviceContext::Draw(4);
 	//NNN::Device::DeviceContext::EndEffect();
 
+	frame++;
+	g_World = DirectX::XMMatrixTranslation(ddx, ddy, ddz);
+	DirectX::XMMATRIX g_tmpRot;
+	switch (mode % 3)
+	{
+	case 0:
+		g_tmpRot = DirectX::XMMatrixRotationX(-0.01*3.141592*frame);
+		break;
+	case 1:
+		g_tmpRot = DirectX::XMMatrixRotationY(-0.01*3.141592*frame);
+		break;
+	case 2:
+		g_tmpRot = DirectX::XMMatrixRotationZ(-0.01*3.141592*frame);
+		break;
+	}
+	mWVP = g_World * g_tmpRot * mRot * g_View * g_Projection;
+	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
+
+	
+	inst->Render(0);
+
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
+	
 	mWVP = g_World * mRot * g_View * g_Projection;
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 
 	inst->Render(0);
-
+	
 	rect->Render();
 
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
@@ -172,6 +199,9 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 
 void ResetMap()
 {
+	inst->GetMap()->LoadFromFile(L".\\TempSave.tmp");
+	return;
+
 	inst->GetMap()->SetBlock(0, 0, 0, 0);
 
 	inst->GetMap()->SetBlock(1, 0, 0, 0);
@@ -223,7 +253,7 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst = new Nyan::Scene(&g_allocator);
 	rect = new Nyan::SelectRect(&g_allocator);
 
-	inst->InitScene(128,128,128);
+	inst->InitScene(32,32,32);
 	
 
 
@@ -398,12 +428,36 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	{
 		return;
 	}
+	if (nChar == 'F' || nChar == 'f')
+	{
+		inst->GetMap()->SaveToFile(L".\\TempSave.tmp");
+	}
+	if (nChar == 'L' || nChar == 'l')
+	{
+		ddy++;
+	}
+	if (nChar == 'K' || nChar == 'k')
+	{
+		ddy--;
+	}
+	if (nChar == 'Y' || nChar == 'y')
+	{
+		mode++;
+	}
+	if (nChar == 'O' || nChar == 'o')
+	{
+		ddx--;
+	}
+	if (nChar == 'P' || nChar == 'p')
+	{
+		ddx++;
+	}
 	if (nChar == 'Q' || nChar == 'q')
 	{
 		ctex = (ctex + 1) % inst->GetMap()->GetT();
 		rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
 	}
-	if (nChar == 'I' || nChar == 'i')//(NNN::Input::Keyboard::isKeyDown(DIK_I))
+	if (nChar == 'I' || nChar == 'i' || nChar == 'E' || nChar == 'E')//(NNN::Input::Keyboard::isKeyDown(DIK_I))
 	{
 		if (!onceflag_I)
 		{
@@ -731,7 +785,7 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		}
 		//inst->GetMap()->CalcMask();
 		//inst->GetMap()->CountRect();
-		inst->InitBuffer();
+		//inst->InitBuffer();
 		//{result.x},{result.y},{result.z},{result.w}\n
 	}
 	//static float p_x, p_y;

@@ -101,6 +101,9 @@ namespace Nyan
 
 		void OutBinary(__out SaveFormat& bin);
 
+		void SaveToFile(__in const wchar_t* path);
+		void LoadFromFile(__in const wchar_t* path);
+
 		
 		inline size_t GetX(){ return m_layer; }
 		inline size_t GetY(){ return m_row; }

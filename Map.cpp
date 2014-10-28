@@ -1,4 +1,6 @@
 #include "Map.h"
+#include "stdio.h"
+#include "TCHAR.h"
 #include <assert.h>
 
 namespace Nyan
@@ -144,6 +146,61 @@ namespace Nyan
 		assert(j >= 0);
 		m_Freeslot[i].Push(j);
 		m_FastTable[i][j].TexType = -1;
+	}
+
+	void Map3D::SaveToFile(__in const wchar_t* path)
+	{
+		int i, j;
+		FILE* fp;
+		int err= _wfopen_s(&fp, path, L"w+");
+		if (fp == nullptr)
+		{
+#ifdef _DEBUG
+			assert(false);
+#endif
+			return;
+		}
+		for (i = 0; i < m_FastTable.GetSize(); ++i)
+		{
+			for (j = 0; j < m_FastTable[i].GetSize(); ++j)
+			{
+				auto obj = &(m_FastTable[i][j]);
+				if (obj->TexType != -1)
+				{
+					fwprintf_s(fp,L"%d %d %d %d \n", obj->x, obj->y, obj->z, obj->TexType);
+				}
+			}
+		}
+		fclose(fp);
+		return;
+	}
+
+	void Map3D::LoadFromFile(__in const wchar_t* path)
+	{
+		int x, y, z, textype;
+		textype = -1;
+		FILE* fp;
+		_wfopen_s(&fp,path, L"r");
+		if (fp == nullptr)
+		{
+#ifdef _DEBUG
+			assert(false);
+#endif
+			return;
+		}
+		for (; !feof(fp);)
+		{
+			if (textype != -1)
+			{
+				SetBlock(x, y, z, textype);
+			}
+			_ftscanf_s(fp, L"%d %d %d %d", &x, &y, &z, &textype);
+			if (ferror(fp)!=0)
+			{
+				break;
+			}
+		}
+		fclose(fp);
 	}
 
 #if defined(Nyan_Map_EnableMaskOptimization)
