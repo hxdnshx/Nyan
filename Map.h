@@ -56,7 +56,7 @@ namespace Nyan
 		}
 	};
 	
-	class Map3D : protected Minimal::MinimalArrayT< std::pair<short,short> >
+	class Map3D : protected Minimal::MinimalArrayT< std::pair<int,int> >
 	{
 	public:
 		typedef std::pair<short, short> MemFormat;
@@ -166,7 +166,7 @@ namespace Nyan
 		//Map3D(__in Minimal::IMinimalAllocator *alloc, __in SaveFormat& bin);
 
 		Map3D(Minimal::IMinimalAllocator *alloc, const int& layer, const int& row, const int& col) :
-			MinimalArrayT<std::pair<short,short> >(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
+			MinimalArrayT<std::pair<int,int> >(alloc), m_layer(layer), m_row(row), m_col(col), m_tcnt(0), m_FastTable(alloc),
 			m_Freeslot(alloc), emptyblock(-1, 0)//, m_dirtydat()
 		{
 			Fill(layer*row*col, -1,-1);

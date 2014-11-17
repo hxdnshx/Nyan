@@ -17,6 +17,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SelectRect.cpp" />
     <ClCompile Include="EditorGUI.cpp" />
+    <ClCompile Include="TimerSys.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="WP8">
@@ -63,6 +64,7 @@
     <ClInclude Include="Line.h" />
     <ClInclude Include="SelectRect.h" />
     <ClInclude Include="EditorGUI.h" />
+    <ClInclude Include="TimerSys.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">

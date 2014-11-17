@@ -22,10 +22,13 @@
 #include"Map.h"
 #include "Line.h"
 #include "SelectRect.h"
+#include "TimerSys.h"
 
 
+# define FastHack
 
 
+using namespace std::placeholders;
 using namespace Minimal;
 
 struct NNN::Buffer::s_VertexBuffer	*g_vb = nullptr;
@@ -55,10 +58,18 @@ UINT g_image_width = 0;
 UINT g_image_height = 0;
 int ctex = 0;
 int frame = 0;
-int ddx = 16;
-int ddy = 0;
-int ddz = 0;
+float ddx = 0;
+float ddy = 0;
+float ddz = 0;
+#ifdef FastHack
+float tdx = -1;
+float tdy = -1;
+float tdz = -1;
+bool lock = false;
+#endif
 int mode = 0;
+Nyan::TimerManage Tim;
+
 
 struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex g_vertices[4];
 
@@ -74,6 +85,7 @@ WORD g_indices[] =
 const WCHAR g_k_TITLE[] = L"Nyan";
 //Nyan::Map3D *map;
 Nyan::Scene *inst;
+Nyan::Scene *character;
 
 
 
@@ -154,7 +166,10 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 
 	frame++;
 	g_World = DirectX::XMMatrixTranslation(ddx, ddy, ddz);
+	//DirectX::XMMATRIX g_offset= DirectX::XMMatrixTranslation(-10,-10.5,0);
+	DirectX::XMMATRIX g_scale = DirectX::XMMatrixScaling(0.05, 0.05, 0.05);
 	DirectX::XMMATRIX g_tmpRot;
+	
 	switch (mode % 3)
 	{
 	case 0:
@@ -167,12 +182,12 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 		g_tmpRot = DirectX::XMMatrixRotationZ(-0.01*3.141592*frame);
 		break;
 	}
-	mWVP = g_World * g_tmpRot * mRot * g_View * g_Projection;
+	mWVP = g_scale * g_World  * mRot * g_View * g_Projection;
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
-
 	
-	inst->Render(0);
-
+	
+	character->Render(0);
+	
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 	
 	mWVP = g_World * mRot * g_View * g_Projection;
@@ -199,7 +214,7 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 
 void ResetMap()
 {
-	inst->GetMap()->LoadFromFile(L".\\TempSave.tmp");
+	inst->GetMap()->LoadFromFile(L".\\DefaultMap.tmp");
 	return;
 
 	inst->GetMap()->SetBlock(0, 0, 0, 0);
@@ -251,31 +266,79 @@ void OnCreate_func(void* /*pUserContext*/)
 	V(NNN::Texture::Add(L"Texture_Default.png",L"Texture_Default.png", 0xffff00ff, true));
 
 	inst = new Nyan::Scene(&g_allocator);
+	character = new Nyan::Scene(&g_allocator);
 	rect = new Nyan::SelectRect(&g_allocator);
 
-	inst->InitScene(32,32,32);
+	character->InitScene(22, 22, 22);
+	inst->InitScene(128,128,60);
 	
+	character->ImportTexture(L"Texture0.png");
+	character->ImportTexture(L"Texture1.png");
+	character->ImportTexture(L"Texture2.png");
+	character->ImportTexture(L"Texture3.png");
+	character->ImportTexture(L"Texture4.png");
+	character->ImportTexture(L"Texture5.png");
+	character->ImportTexture(L"Texture6.png");
+	character->ImportTexture(L"Texture7.png");
+	character->ImportTexture(L"Texture8.png");
+	character->ImportTexture(L"Texture9.png");
+	character->ImportTexture(L"Texture10.png");
+	character->ImportTexture(L"Texture11.png");
+	character->ImportTexture(L"Texture12.png");
+	character->ImportTexture(L"Texture13.png");
+	character->ImportTexture(L"Texture14.png");
+	character->ImportTexture(L"Texture15.png");
+	character->ImportTexture(L"Texture16.png");
 
+	inst->ImportTexture(L"Texture0.png");
+	inst->ImportTexture(L"Texture1.png");
+	inst->ImportTexture(L"Texture2.png");
+	inst->ImportTexture(L"Texture3.png");
+	inst->ImportTexture(L"Texture4.png");
+	inst->ImportTexture(L"Texture5.png");
+	inst->ImportTexture(L"Texture6.png");
+	inst->ImportTexture(L"Texture7.png");
+	inst->ImportTexture(L"Texture8.png");
+	inst->ImportTexture(L"Texture9.png");
+	inst->ImportTexture(L"Texture10.png");
+	inst->ImportTexture(L"Texture11.png");
+	inst->ImportTexture(L"Texture12.png");
+	inst->ImportTexture(L"Texture13.png");
+	inst->ImportTexture(L"Texture14.png");
+	inst->ImportTexture(L"Texture15.png");
+	inst->ImportTexture(L"Texture16.png");
 
-	inst->ImportTexture(L"Texture_Default.png");
-	inst->ImportTexture(L"Texture_Selected.png");
-	inst->ImportTexture(L"Texture_Special.png");
-	inst->ImportTexture(L"Texture_01.png");
-	inst->ImportTexture(L"Texture_02.png");
-	inst->ImportTexture(L"Texture_03.png");
-	inst->ImportTexture(L"Texture_04.png");
-	inst->ImportTexture(L"Texture_05.png");
-	inst->ImportTexture(L"Texture_06.png");
-	inst->ImportTexture(L"Texture_07.png");
-	inst->ImportTexture(L"Texture_08.png");
-	inst->ImportTexture(L"Texture_09.png");
-	inst->ImportTexture(L"Texture_10.png");
-	inst->ImportTexture(L"Texture_11.png");
+#ifdef FastHack
+	auto setfunc = [](float& change, float& target,void* self,Nyan::TimerManage* inst)
+	{
+		if (target > 0)
+		{
+			if (fabs(change - target) > 0.05)
+			{
+				if (change < target)
+				{
+					change += 0.05;
+				}
+				else
+				{
+					change -= 0.05;
+				}
+			}
+		}
+	};
+	auto func = std::bind(setfunc, ddx, tdx, _1, _2);
+	Tim.SetTimer(func, 1, true);
+	Tim.StartTimer()
+#endif
 
 	ResetMap();
 
-
+	character->SetGroundVisiablity(true);
  	inst->InitBuffer();
+
+	character->GetMap()->LoadFromFile(L"chr_jp.tmp");
+	character->SetGroundVisiablity(false);
+	character->InitBuffer();
 
 	ctex = 0;
 	rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
@@ -373,6 +436,7 @@ void OnCreate_func(void* /*pUserContext*/)
 void OnDestroy_func(void* /*pUserContext*/)
 {
 	delete inst;
+	delete character;
 	delete rect;
 	SAFE_RELEASE(g_vb);
 	SAFE_RELEASE(g_ib);
@@ -428,17 +492,28 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	{
 		return;
 	}
+	if (nChar == '5')
+	{
+		lock = !lock;
+		if (lock){
+			DirectX::XMVECTOR vecEye = { ddx + 0.8, ddy + 0.5, ddz - 0.7 };
+			DirectX::XMVECTOR vecatori = DirectX::XMVectorSubtract(g_cam.GetLookAtPt(), g_cam.GetEyePt());
+			vecatori = DirectX::XMVectorAdd(vecEye, vecatori);
+
+			g_cam.SetViewParams(vecEye, vecatori);
+		}
+	}
 	if (nChar == 'F' || nChar == 'f')
 	{
-		inst->GetMap()->SaveToFile(L".\\TempSave.tmp");
+		inst->GetMap()->SaveToFile(L".\\DefaultMap.tmp");
 	}
 	if (nChar == 'L' || nChar == 'l')
 	{
-		ddy++;
+		if(tdy<inst->GetMap()->GetY()-1)tdy++;
 	}
 	if (nChar == 'K' || nChar == 'k')
 	{
-		ddy--;
+		if(tdy>0)tdy--;
 	}
 	if (nChar == 'Y' || nChar == 'y')
 	{
@@ -446,11 +521,80 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	}
 	if (nChar == 'O' || nChar == 'o')
 	{
-		ddx--;
+		if(tdx>0)tdx--;
 	}
 	if (nChar == 'P' || nChar == 'p')
 	{
-		ddx++;
+		if (tdy<inst->GetMap()->GetX() - 1)tdx++;
+	}
+	if (nChar == 'm' || nChar == 'M')
+	{
+		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
+		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
+			(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+			g_Projection.r[0].m128_f32[0],
+			-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+			g_Projection.r[1].m128_f32[1], 1, 0);
+		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
+		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
+		DirectX::XMMATRIX rotinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixRotationX(-0.5 * 3.141592));
+
+		m_mouse = DirectX::XMVector4Transform(m_mouse, viewinv);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, rotinv);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, worinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, viewinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, rotinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, worinv);
+
+		DirectX::XMFLOAT4 ori, dir;
+		DirectX::XMStoreFloat4(&ori, m_mouse);
+		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
+		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
+		if (result.x != -1)
+		{
+			int nx, ny, nz;
+			nx = result.x;
+			ny = result.y;
+			nz = result.z;
+			switch ((int)result.w)
+			{
+			case Nyan::Direction::Up:
+				nz++;
+				break;
+			case Nyan::Direction::Down:
+				nz--;
+				break;
+			case Nyan::Direction::Left:
+				ny--;
+				break;
+			case Nyan::Direction::Right:
+				ny++;
+				break;
+			case Nyan::Direction::Front:
+				nx++;
+				break;
+			case Nyan::Direction::Back:
+				nx--;
+				break;
+			}
+			tdx = nx;
+			tdy = ny;
+			tdz = nz;
+			if (tdz == -1)
+			{
+				++tdz;
+			}
+			/*
+			timers.clear();
+			timers.push_back(std::make_pair(std::bind(
+				[](float* target, float targetval, void* ex, bool islast, int curcnt)
+					{
+							
+					}
+				,(&ddx),float(nx),(void*)(new int(120)),std::placeholders::_1,std::placeholders::_2), 120));
+					//此处有内存泄漏,泄漏一个int,之后再进行修正
+			*/
+		}
 	}
 	if (nChar == 'Q' || nChar == 'q')
 	{
@@ -731,8 +875,20 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 {
 	static int m_lx = -1, m_ly = -1;
 	int dx = 0, dy = 0, dz = 0;
+#ifdef FastHack
+	if (lock){
+		DirectX::XMVECTOR vecEye = { ddx + 0.8, ddy + 0.5, ddz - 0.7 };
+		DirectX::XMVECTOR vecatori = DirectX::XMVectorSubtract(g_cam.GetLookAtPt(), g_cam.GetEyePt());
+		vecatori = DirectX::XMVectorAdd(vecEye, vecatori);
 
-
+		g_cam.SetViewParams(vecEye, vecatori);
+	}
+	
+	setfunc(ddx, tdx);
+	setfunc(ddy, tdy);
+	setfunc(ddz, tdz);
+#endif
+	Tim.Tick();
 	dz = NNN::Input::Mouse::MouseZ_Delta();
 	if (dz != 0)
 	{

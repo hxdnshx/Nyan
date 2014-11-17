@@ -340,19 +340,21 @@ namespace Nyan
 			RepackTexture();
 		}
 		//Ground
-
-		vert.m_Pos = DirectX::XMFLOAT3(0, 0, 0);
-		vert.m_Tex = GetTexloc(0, 0);
-		m_vlist.Push(vert);
-		vert.m_Pos = DirectX::XMFLOAT3(0, map->GetY()*scale, 0);
-		vert.m_Tex = GetTexloc(0, 1);
-		m_vlist.Push(vert);
-		vert.m_Pos = DirectX::XMFLOAT3(map->GetX(), 0, 0);
-		vert.m_Tex = GetTexloc(0, 2);
-		m_vlist.Push(vert);
-		vert.m_Pos = DirectX::XMFLOAT3(map->GetX(), map->GetY(), 0);
-		vert.m_Tex = GetTexloc(0, 3);
-		m_vlist.Push(vert);
+		if (m_groundflag)
+		{
+			vert.m_Pos = DirectX::XMFLOAT3(0, 0, 0);
+			vert.m_Tex = GetTexloc(7, 0);
+			m_vlist.Push(vert);
+			vert.m_Pos = DirectX::XMFLOAT3(0, map->GetY()*scale, 0);
+			vert.m_Tex = GetTexloc(7, 1);
+			m_vlist.Push(vert);
+			vert.m_Pos = DirectX::XMFLOAT3(map->GetX(), 0, 0);
+			vert.m_Tex = GetTexloc(7, 2);
+			m_vlist.Push(vert);
+			vert.m_Pos = DirectX::XMFLOAT3(map->GetX(), map->GetY(), 0);
+			vert.m_Tex = GetTexloc(7, 3);
+			m_vlist.Push(vert);
+		}
 
 		itmp = 0;
 		m_ilist.Push((WORD)itmp + 3);
@@ -634,7 +636,7 @@ namespace Nyan
 
 		//NNN::Device::DeviceContext::Draw(4);
 
-		
+		/*
 		for (i = 0; i < map->m_FastTable.GetSize(); ++i)
 		{
 			for (j = 0; j < map->m_FastTable[i].GetSize(); ++j)
@@ -647,8 +649,9 @@ namespace Nyan
 				}
 			}
 		}
+		*/
 
-		//NNN::Device::DeviceContext::DrawIndexed(m_isize);
+		NNN::Device::DeviceContext::DrawIndexed(m_isize);
 		
 		NNN::Device::DeviceContext::EndEffect();
 	}

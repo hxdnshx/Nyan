@@ -60,12 +60,16 @@ namespace Nyan
 
 	void Map3D::SetBlock(const int &x, const int &y, const int &z, const int val)
 	{
-		if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
+		if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col || val < -1 || val>=m_tcnt)
 		{
+#ifdef _DEBUG
+			assert(false);
+#else
 			::RaiseException(
 				EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
 				EXCEPTION_NONCONTINUABLE,
 				0, NULL); /* бл fin бл */
+#endif
 		}
 		int loc;
 		int offset;

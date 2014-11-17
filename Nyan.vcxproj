@@ -493,6 +493,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SelectRect.cpp" />
     <ClCompile Include="sensors.cpp" />
+    <ClCompile Include="TimerSys.cpp" />
     <ClCompile Include="WP8\wp8.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -503,6 +504,7 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="SelectRect.h" />
+    <ClInclude Include="TimerSys.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Condition="'$(Configuration)'=='Debug_wp8' or '$(Configuration)'=='Release_wp8'" Include="platform.winmd">
