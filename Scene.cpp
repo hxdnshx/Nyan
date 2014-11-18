@@ -31,7 +31,8 @@ namespace Nyan
 		{
 			return;
 		}
-		fgetws(sTexturePath, 128, fp);
+		fgetws(sTexturePath, 128, fp);//没经过处理的结果存在\n,需要消除
+		sTexturePath[wcslen(sTexturePath) - 1] = L'\0';
 		if (ferror(fp))//If no error has occurred on stream, ferror returns 0.
 		{
 			assert(false);
@@ -39,6 +40,7 @@ namespace Nyan
 			return;
 		}
 		fgetws(sMapPath, 128, fp);
+		sMapPath[wcslen(sMapPath) - 1] = L'\0';
 		if (ferror(fp))//If no error has occurred on stream, ferror returns 0.
 		{
 			assert(false);
@@ -58,6 +60,7 @@ namespace Nyan
 		map->SetT(tcnt);
 		map->LoadFromFile(sMapPath);
 		fclose(fp);
+		InitBuffer();
 	}
 
 	void Scene::RepackTexture()

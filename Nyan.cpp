@@ -31,9 +31,8 @@
 using namespace std::placeholders;
 using namespace Minimal;
 
-struct NNN::Buffer::s_VertexBuffer	*g_vb = nullptr;
-struct NNN::Buffer::s_IndexBuffer *g_ib = nullptr;
-class NNN::Texture::c_Texture		*g_texture = nullptr;
+
+
 
 class NNN::State::c_RenderState		*g_render_state = nullptr;
 class NNN::State::c_SamplerState	*g_sampler_state = nullptr;
@@ -71,7 +70,6 @@ int mode = 0;
 Nyan::TimerManage Tim;
 
 
-struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex g_vertices[4];
 
 //Minimal::MinimalArrayT<int> obj(&g_allocator);
 
@@ -214,7 +212,7 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 
 void ResetMap()
 {
-	inst->GetMap()->LoadFromFile(L".\\DefaultMap.tmp");
+	//inst->GetMap()->LoadFromFile(L".\\DefaultMap.tmp");
 	return;
 
 	inst->GetMap()->SetBlock(0, 0, 0, 0);
@@ -269,6 +267,13 @@ void OnCreate_func(void* /*pUserContext*/)
 	character = new Nyan::Scene(&g_allocator);
 	rect = new Nyan::SelectRect(&g_allocator);
 
+	inst->SetGroundVisiablity(true);
+	character->SetGroundVisiablity(false);
+
+	inst->LoadScene(L"DefaultMap.scfg");
+	character->LoadScene(L"Character.scfg");
+
+	/*
 	character->InitScene(22, 22, 22);
 	inst->InitScene(128,128,60);
 	
@@ -307,6 +312,7 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst->ImportTexture(L"Texture14.png");
 	inst->ImportTexture(L"Texture15.png");
 	inst->ImportTexture(L"Texture16.png");
+	*/
 
 #ifdef FastHack
 	auto setfunc = [](float* change, float* target,const int& self,Nyan::TimerManage* inst)
@@ -338,14 +344,14 @@ void OnCreate_func(void* /*pUserContext*/)
 	Tim.StartTimer(Tim.SetTimer(func3, 1, true));
 #endif
 
-	ResetMap();
+	//ResetMap();
 
-	character->SetGroundVisiablity(true);
- 	inst->InitBuffer();
+	
+ 	//inst->InitBuffer();
 
-	character->GetMap()->LoadFromFile(L"chr_jp.tmp");
-	character->SetGroundVisiablity(false);
-	character->InitBuffer();
+	//character->GetMap()->LoadFromFile(L"chr_jp.tmp");
+	
+	//character->InitBuffer();
 
 	ctex = 0;
 	rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
@@ -353,78 +359,16 @@ void OnCreate_func(void* /*pUserContext*/)
 	//g_View = NNN::Misc::GetOrthoView();
 	
 	//V(NNN::Texture::Add(L"Character.png", L"Character.png", 0xffff00ff, true));
-	V(NNN::Texture::Add(L"Texture_Default.png", L"Texture_Default.png", 0xffff00ff, true));
-	g_texture = NNN::Texture::Find(L"Texture_Default.png");
+;
 
-	g_image_width = 10;
-	g_image_height = 10;
 
-	float min_width = 0;
-	float max_width = 10;
-	float min_height = 0;
-	float max_height = 10;
 
-	float max_u = g_texture->GetMaxU();
-	float max_v = g_texture->GetMaxV();
 
-	g_vertices[0].m_Pos = DirectX::XMFLOAT3(min_width, max_height, 0.0f);
-	g_vertices[0].m_Tex = DirectX::XMFLOAT2(0.0f, 0.0f);
-	g_vertices[0].m_Color = 0xffffffff;
-
-	g_vertices[1].m_Pos = DirectX::XMFLOAT3(max_width, max_height, 0.0f);
-	g_vertices[1].m_Tex = DirectX::XMFLOAT2(max_u, 0.0f);
-	g_vertices[1].m_Color = 0xffffffff;
-
-	g_vertices[2].m_Pos = DirectX::XMFLOAT3(min_width, min_height, 0.0f);
-	g_vertices[2].m_Tex = DirectX::XMFLOAT2(0.0f, max_v);
-	g_vertices[2].m_Color = 0xffffffff;
-
-	g_vertices[3].m_Pos = DirectX::XMFLOAT3(max_width, min_height, 0.0f);
-	g_vertices[3].m_Tex = DirectX::XMFLOAT2(max_u, max_v);
-	g_vertices[3].m_Color = 0xffffffff;
-
-	NNN::es_GraphAPI graph_api = NNN::GetGraphAPI();
-
-	for (UINT i = 0; i < _countof(g_vertices); ++i)
-	{
-		g_vertices[i].UpdateData();
-
-#if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
-		if (graph_api == NNN::es_GraphAPI::DX9)
-		{
-			g_vertices[i].m_Pos.x -= 0.5f;
-			g_vertices[i].m_Pos.y -= 0.5f;
-		}
-#endif	// NNN_PLATFORM_WIN32
-	}
 
 	
-	g_vb = new struct NNN::Buffer::s_VertexBuffer();
-	g_ib = new struct NNN::Buffer::s_IndexBuffer();
 
-	switch (graph_api)
-	{
-#if (NNN_PLATFORM == NNN_PLATFORM_WIN32) || (NNN_PLATFORM == NNN_PLATFORM_WP8)
-	case NNN::es_GraphAPI::DX11:
-		V(g_vb->Init_DX11(g_vertices, sizeof(g_vertices)));
-		V(g_ib->Init_DX11(g_indices, sizeof(g_indices)));
-		break;
-#endif	// NNN_PLATFORM_WIN32 || NNN_PLATFORM_WP8
 
-#if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
-	case NNN::es_GraphAPI::DX9:
-		V(g_vb->Init_DX9(g_vertices, sizeof(g_vertices)));
-		V(g_ib->Init_DX9(g_indices, sizeof(g_indices)));
-		break;
-#endif	// NNN_PLATFORM_WIN32
 
-#if (NNN_PLATFORM != NNN_PLATFORM_WP8)
-	case NNN::es_GraphAPI::OpenGL:
-		V(g_vb->Init_OpenGL(g_vertices, sizeof(g_vertices), GL_STATIC_DRAW));
-		V(g_ib->Init_OpenGL(g_indices, sizeof(g_indices), GL_STATIC_DRAW));
-		break;
-#endif	// !NNN_PLATFORM_WP8
-	}
 
 	ChangeSize(NNN::Misc::GetClientWidth(), NNN::Misc::GetClientHeight());
 
@@ -445,11 +389,9 @@ void OnDestroy_func(void* /*pUserContext*/)
 	delete inst;
 	delete character;
 	delete rect;
-	SAFE_RELEASE(g_vb);
-	SAFE_RELEASE(g_ib);
+
 	
-	NNN::Texture::Release(g_texture);
-	g_texture = nullptr;
+
 
 	SAFE_DELETE(g_render_state);
 	SAFE_DELETE(g_sampler_state);
