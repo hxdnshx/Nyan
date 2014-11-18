@@ -718,12 +718,13 @@ namespace Nyan
 	}
 
 	inline int FitFunc(int x, int y, int z, float ox,float oy, float oz)
-	{
-		return 32768 - (ox - 0.5 - x)*(ox - 0.5 - x) - (oy - 0.5 - y)*(oy - 0.5 - y) - (oz - 0.5 - z)*(oz - 0.5 - z);
+	{//当时对每个xyz量都加了0.5,具体原因记不清了,先删掉试试
+		return 32768 - (ox - x)*(ox - x) - (oy - y)*(oy - y) - (oz - z)*(oz - z);
 	}
 
 	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)
 	{
+		//Note: 使用除法次数过多,如果之后需要进行优化可以从这里下手
 		int e_y, e_z;
 		int x, y, z;
 		float tx, ty, tz;
