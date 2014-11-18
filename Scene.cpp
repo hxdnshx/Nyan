@@ -679,10 +679,13 @@ namespace Nyan
 		int startindex = 0;
 		class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
 
+
+
 		NNN::Device::DeviceContext::IASetIndexBuffer(m_ib);
 		NNN::Device::DeviceContext::IASetVertexBuffers(m_vb, sizeof(VertexType));
 		NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+		NNN::State::SetSamplerState(g_sampler_state, 0, 0, m_pak.GetPackTexture());
 		effect->SetResource("g_Texture", m_pak.GetPackTexture(),0);
 
 		NNN::Device::DeviceContext::SetEffect(effect, NNN_SHADER_LIBS_TEXTURE_COLORTEXTURE_DX9_TECH_NAME);
@@ -715,6 +718,7 @@ namespace Nyan
 		SAFE_RELEASE(m_vb);
 		SAFE_RELEASE(m_ib);
 		delete map;
+		delete g_sampler_state;
 	}
 
 	inline int FitFunc(int x, int y, int z, float ox,float oy, float oz)

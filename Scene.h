@@ -32,6 +32,7 @@ namespace Nyan{
 		bool m_groundflag;
 		typedef std::pair < int, void* > DirtyData;
 		//Minimal::MinimalArrayT< DirtyData > m_DirtyList;
+		NNN::State::c_SamplerState* g_sampler_state;
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 		typedef std::pair<int, int> RenderInfo;
@@ -76,6 +77,10 @@ namespace Nyan{
 			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0), m_offset(alloc),
 			m_pak(), m_Texture(alloc), m_groundflag(true)
 		{
+			g_sampler_state = new NNN::State::c_SamplerState();
+			g_sampler_state->SetFilter(D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT);
+			g_sampler_state->SetAddressU(D3D11_TEXTURE_ADDRESS_CLAMP);
+			g_sampler_state->SetAddressV(D3D11_TEXTURE_ADDRESS_CLAMP);
 			m_pak.Init(false);
 			m_alloc = alloc;
 			m_tstr = L"";

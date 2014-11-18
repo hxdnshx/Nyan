@@ -152,7 +152,7 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	//effect->SetResource("g_Texture", g_texture, 0);
 
 	// 设置渲染状态
-	//NNN::State::SetRenderState(g_render_state);
+	NNN::State::SetRenderState(g_render_state);
 
 	// 设置采样状态
 	//NNN::State::SetSamplerState(g_sampler_state, 0, 0, g_texture);
