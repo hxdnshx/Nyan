@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include <stdio.h>
 
 #define scale 1.0
 
@@ -8,6 +9,55 @@ namespace Nyan
 	{
 		HRESULT hr;
 		map = new Map3D(m_alloc, x, y, z);
+	}
+
+	void Scene::LoadScene(__in wchar_t* src)
+	{
+		/*
+			Format:
+			Texture Path(Max 128 char)(relative path)
+			Map File Path
+			Map length(X,Y,Z)
+			Texture Count(int)
+		*/
+		wchar_t sTexturePath[128];//MAX_PATH
+		wchar_t sMapPath[128];
+		wchar_t sTmpPath[128];
+		int x, y, z; //Size
+		int tcnt;//Texture Count
+		FILE *fp;
+		_wfopen_s(&fp, src, L"r");
+		if (!fp)
+		{
+			return;
+		}
+		fgetws(sTexturePath, 128, fp);
+		if (ferror(fp))//If no error has occurred on stream, ferror returns 0.
+		{
+			assert(false);
+			fclose(fp);
+			return;
+		}
+		fgetws(sMapPath, 128, fp);
+		if (ferror(fp))//If no error has occurred on stream, ferror returns 0.
+		{
+			assert(false);
+			fclose(fp);
+			return;
+		}
+		fwscanf_s(fp, L"%d %d %d", &x, &y, &z);
+		fwscanf_s(fp, L"%d", &tcnt);
+		int i;
+		for (i = 0; i < tcnt; ++i)
+		{
+			swprintf_s(sTmpPath, L"%s%d.png", sTexturePath, i);
+			this->ImportTexture(sTmpPath);
+		}
+		
+		InitScene(x, y, z);
+		map->SetT(tcnt);
+		map->LoadFromFile(sMapPath);
+		fclose(fp);
 	}
 
 	void Scene::RepackTexture()
@@ -30,7 +80,7 @@ namespace Nyan
 		m_Texture.Fill(1,ptr);
 		//tptr = m_pak.GetTexturePiece(ptr);
 		//m_tptr.Push(tptr);
-		map->SetT(map->GetT() + 1);
+		//map->SetT(map->GetT() + 1);
 	}
 
 	/*

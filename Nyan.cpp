@@ -295,7 +295,7 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst->ImportTexture(L"Texture2.png");
 	inst->ImportTexture(L"Texture3.png");
 	inst->ImportTexture(L"Texture4.png");
-	inst->ImportTexture(L"Texture5.png");
+	inst->ImportTexture(L"Texture5.p\ng");
 	inst->ImportTexture(L"Texture6.png");
 	inst->ImportTexture(L"Texture7.png");
 	inst->ImportTexture(L"Texture8.png");
@@ -309,26 +309,33 @@ void OnCreate_func(void* /*pUserContext*/)
 	inst->ImportTexture(L"Texture16.png");
 
 #ifdef FastHack
-	auto setfunc = [](float& change, float& target,void* self,Nyan::TimerManage* inst)
+	auto setfunc = [](float* change, float* target,const int& self,Nyan::TimerManage* inst)
 	{
-		if (target > 0)
+		if (*target > 0)
 		{
-			if (fabs(change - target) > 0.05)
+			if (fabs(*change - *target) > 0.05)
 			{
-				if (change < target)
+				if (*change < *target)
 				{
-					change += 0.05;
+					*change += 0.05;
 				}
 				else
 				{
-					change -= 0.05;
+					*change -= 0.05;
 				}
+			}
+			else
+			{
+				*change = *target;
 			}
 		}
 	};
-	auto func = std::bind(setfunc, ddx, tdx, _1, _2);
-	Tim.SetTimer(func, 1, true);
-	Tim.StartTimer()
+	auto func1 = std::bind(setfunc, &ddx, &tdx, _1, _2);
+	auto func2 = std::bind(setfunc, &ddy, &tdy, _1, _2);
+	auto func3 = std::bind(setfunc, &ddz, &tdz, _1, _2);
+	Tim.StartTimer(Tim.SetTimer(func1, 1, true));
+	Tim.StartTimer(Tim.SetTimer(func2, 1, true));
+	Tim.StartTimer(Tim.SetTimer(func3, 1, true));
 #endif
 
 	ResetMap();
@@ -496,7 +503,7 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	{
 		lock = !lock;
 		if (lock){
-			DirectX::XMVECTOR vecEye = { ddx + 0.8, ddy + 0.5, ddz - 0.7 };
+			DirectX::XMVECTOR vecEye = { ddx + 0.5, ddz + 0.7, -ddy - 0.5 };
 			DirectX::XMVECTOR vecatori = DirectX::XMVectorSubtract(g_cam.GetLookAtPt(), g_cam.GetEyePt());
 			vecatori = DirectX::XMVectorAdd(vecEye, vecatori);
 
@@ -877,16 +884,16 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 	int dx = 0, dy = 0, dz = 0;
 #ifdef FastHack
 	if (lock){
-		DirectX::XMVECTOR vecEye = { ddx + 0.8, ddy + 0.5, ddz - 0.7 };
+		DirectX::XMVECTOR vecEye = { ddx + 0.5, ddz + 0.7, -ddy - 0.5 };
 		DirectX::XMVECTOR vecatori = DirectX::XMVectorSubtract(g_cam.GetLookAtPt(), g_cam.GetEyePt());
 		vecatori = DirectX::XMVectorAdd(vecEye, vecatori);
 
 		g_cam.SetViewParams(vecEye, vecatori);
 	}
 	
-	setfunc(ddx, tdx);
-	setfunc(ddy, tdy);
-	setfunc(ddz, tdz);
+	//setfunc(ddx, tdx);
+	//setfunc(ddy, tdy);
+	//setfunc(ddz, tdz);
 #endif
 	Tim.Tick();
 	dz = NNN::Input::Mouse::MouseZ_Delta();

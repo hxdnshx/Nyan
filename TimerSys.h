@@ -9,8 +9,7 @@ using namespace std;
 
 namespace Nyan
 {
-	float ddx;
-	void* declsample = 0;
+	
 
 	class TimerManage;
 
@@ -84,7 +83,7 @@ namespace Nyan
 		//
 
 		
-		int SetTimer(int inst, timerfunc func, int iInterval, bool bIsRepeat)
+		int SetTimer(const int& inst, timerfunc func, int iInterval, bool bIsRepeat)
 		{
 			if (func != nullptr)
 			{
@@ -95,31 +94,24 @@ namespace Nyan
 
 		}
 
-		/*
-			Parameter inst must be an pointer to SelfType(list<TimerData>::iterator)
-		*/
-		void RemoveTimer(void *inst)
+		
+		void RemoveTimer(const int& inst)
 		{
-			SelfType* ptr = reinterpret_cast<SelfType*>(inst);
-			(*ptr)->flag_remove = true;
+			
+			tim[inst].flag_remove = true;
 		}
 
-		/*
-		Parameter inst must be an pointer to SelfType(list<TimerData>::iterator)
-		*/
-		void StartTimer(void* inst)
+		
+		void StartTimer(const int& inst)
 		{
-			SelfType* ptr = reinterpret_cast<SelfType*>(inst);
-			(*ptr)->bActive = true;
+			
+			tim[inst].bActive = true;
 		}
 
-		/*
-		Parameter inst must be an pointer to SelfType(list<TimerData>::iterator)
-		*/
-		void PauseTimer(void* inst)
+		void PauseTimer(const int& inst)
 		{
-			SelfType* ptr = reinterpret_cast<SelfType*>(inst);
-			(*ptr)->bActive = false;
+			
+			tim[inst].bActive = false;
 		}
 
 		void Test();

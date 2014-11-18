@@ -171,6 +171,9 @@ namespace Nyan
 		{
 			Fill(layer*row*col, -1,-1);
 		}
+		/*
+				TODO:新增从文件中创建地图的构造函数
+		*/
 	};
 	
 }

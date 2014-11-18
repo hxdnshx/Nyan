@@ -67,8 +67,8 @@ namespace Nyan{
 		
 		DirectX::XMFLOAT4 TestCollisoin(const LineFunc& src);
 
-		void SaveScene(__out SaveFormat &bin);
-		void LoadScene(__in SaveFormat& bin);
+		//void SaveScene(__out SaveFormat &bin);
+		void LoadScene(__in wchar_t* src);
 		void InitScene(__in int x, __in int y, __in int z);
 		inline Map3D* GetMap(){return map;}
 		void ImportTexture(__in wchar_t* ptr);
