@@ -126,6 +126,11 @@ namespace Nyan
 			m_tcnt = m_FastTable.GetSize();
 		}
 
+		inline bool IsLocationInRange(const int &x, const int &y, const int &z)
+		{
+			return !(x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col);
+		}
+
 		//实际存储方式为x-y-z形式(z层面上是连续存储的
 		inline const m_block& GetBlock(const int &x,const int &y,const int &z)
 		{

@@ -256,8 +256,17 @@ void OnCreate_func(void* /*pUserContext*/)
 	g_cam.SetRotateButtons(FALSE, FALSE, FALSE);
 	g_cam.SetClipToBoundary(TRUE, &vMin, &vMax);
 	g_cam.FrameMove(0);
-	
+
 	//g_cam.Set
+
+	/*
+	{
+		DirectX::XMVECTOR vec = DirectX::XMLoadFloat4(&DirectX::XMFLOAT4(-1.0625, 0.0625, 1.125, -0.0625));
+		DirectX::XMFLOAT4 tv;
+		DirectX::XMStoreFloat4(&tv,DirectX::XMVectorOrInt(DirectX::XMVectorAndInt(vec, DirectX::XMVectorSplatSignMask()),DirectX::XMVectorSplatOne()));
+		DirectX::XMStoreFloat4(&tv,DirectX::XMVector3Normalize(vec));
+		//
+	}*/
 
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 

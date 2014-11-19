@@ -3,6 +3,8 @@
 
 #define scale 1.0
 
+using namespace DirectX;
+
 namespace Nyan
 {
 	void Scene::InitScene(__in int x, __in int y, __in int z)
@@ -728,6 +730,173 @@ namespace Nyan
 
 	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)
 	{
+		/*
+				// grid space
+				vec3 grid = floor( pos ); //向下取整将坐标在网格中使用
+				vec3 grid_step = sign( dir ); //获取dir(方向)的正负符号<-意思就是说获取网格的步进方向,虽然只是正负
+				vec3 corner = max( grid_step, vec3( 0.0 ) );//负号->0 //应该是最后在步进方向上产生的偏差值,但是原因不明
+
+				// ray space
+				vec3 inv = vec3( 1.0 ) / dir; //取倒数使得各个方向的比值倒过来
+				vec3 ratio = ( grid + corner - pos ) * inv;//corn+pos的小数部分
+				vec3 ratio_step = grid_step * inv;//不懂
+				//于是这个rayspace只是提供一个比值,来决定grid的步进么
+
+				// dda <-数值微分法
+				float hit = -1.0;
+				for ( int i = 0; i < 128; i++ ) {
+				if ( voxel( grid ) > 0.5 ) {
+		
+				hit = 1.0;
+				break;   //这里应该是可以直接退出循环的,感觉没什么区别
+				continue;
+				}
+
+				vec3 cp = step( ratio, ratio.yzx );//二维情况的搞清楚了,问题还有就是在三维空间上的扩展
+
+				mask = cp * ( vec3( 1.0 ) - cp.zxy );
+
+				grid  += grid_step  * mask;
+				ratio += ratio_step * mask;
+				}
+
+				center = grid + vec3( 0.5 );//中心形式表示(跟grid应该没区别吧0 0)
+				return dot(ratio - ratio_step,vec3(1.0)) * hit;//dot( ratio - ratio_step, mask ) * hit;
+				//这里关心的是hit的深度好像
+		*/
+		//p1是起点
+		XMVECTOR start = XMLoadFloat4(&(src.p1));
+		XMVECTOR dir = XMVector3Normalize(XMLoadFloat4(&(src.n)));
+		XMVECTOR zero = XMVectorSetBinaryConstant(0, 0, 0, 0);
+		XMVECTOR one = XMVectorSetBinaryConstant(1, 1, 1, 1);
+
+
+		XMVECTOR grid;
+		XMVECTOR grid_step;
+		XMVECTOR grid_corner;
+		grid=XMVectorFloor(start);//实际上w分量为0应该就不影响了吧(
+		//好像DirectXMath没有提供Sign的函数(于是用了一个挺别扭的方法- -
+		//grid_step 就是 sign_dir
+		grid_step = DirectX::XMVectorOrInt(DirectX::XMVectorAndInt(dir, DirectX::XMVectorSplatSignMask()), DirectX::XMVectorSplatOne());
+		grid_corner = XMVectorClamp(grid_step, zero, one);
+
+		XMVECTOR inv;
+		XMVECTOR ratio;
+		XMVECTOR ratio_step;
+		inv = XMVectorReciprocal(dir);
+		ratio = XMVectorMultiply(XMVectorSubtract(XMVectorAdd(grid, grid_corner), start), inv);
+		ratio_step = XMVectorMultiply(grid_step, inv);
+
+		bool hit = false;
+		XMVECTOR cp;
+		XMVECTOR mask;
+		XMVECTOR ratioyzx;
+		XMVECTOR cpzxy;
+		XMFLOAT4 tmp1;
+		XMFLOAT4 tmp2;
+		for (int i = 0; i < 128; ++i)//最大深度为128
+		{
+			XMStoreFloat4(&tmp1, grid);
+			/*
+			__try{
+				if (map->At(tmp1.x, tmp1.y, tmp1.z).TexType != -1)
+				{
+					hit = true;
+					break;
+				}
+			}
+			__except ((GetExceptionCode() == EXCEPTION_ARRAY_BOUNDS_EXCEEDED)?EXCEPTION_EXECUTE_HANDLER:EXCEPTION_CONTINUE_SEARCH)
+			{
+				//捕获越界错误作为跳出条件,看看有没有问题...
+				break;
+			}
+			*/
+			//理论上来说异常的话处理代价太大,还是判断一下range吧= =
+			if ((map->IsLocationInRange(tmp1.x, tmp1.y, tmp1.z)))
+			{
+				if (map->At(tmp1.x, tmp1.y, tmp1.z).TexType != -1)
+				{
+					hit = true;
+					break;
+				}
+			}
+			/*
+				修正:发生越界的时候并不一定就要终止,需要考虑到从值域外射出的射线.....
+				不过就算不break效率应该也比原先的算法要高...(除了要限制一下最大遍历深度这方面
+			*/
+			
+
+			XMStoreFloat4(&tmp1, ratio);
+			tmp2.x = tmp1.y; tmp2.y = tmp1.z; tmp2.z = tmp1.x;
+			ratioyzx = XMLoadFloat4(&tmp2);
+			
+			cp = XMVectorAndInt(XMVectorGreaterOrEqual(ratioyzx, ratio), XMVectorSplatOne());//1 or 0
+			XMStoreFloat4(&tmp1, cp);
+			tmp2.x = tmp1.z; tmp2.y = tmp1.x; tmp2.z = tmp1.y;
+			cpzxy = XMLoadFloat4(&tmp2);
+			mask = XMVectorMultiply(cp, XMVectorSubtract(one, cpzxy));
+
+			grid += XMVectorMultiply(grid_step, mask);
+			ratio += XMVectorMultiply(ratio_step, mask);
+		}
+		if (hit)
+		{
+			XMFLOAT4 result;
+			result = tmp1; //所在方块
+			XMVECTOR normal;
+			normal = XMVectorMultiply(mask, grid_step);
+			XMStoreFloat4(&tmp1, normal);
+			//需要全部反过来,因为上面的式子没有取反
+			if (tmp1.x > 0.5)
+			{
+				//法向量为1,0,0,后方
+				result.w = Direction::Back;
+			}
+			else if (tmp1.x < -0.5)
+			{
+				//法向量为-1,0,0,前方
+				result.w = Direction::Front;
+			}
+			else if (tmp1.y < -0.5)
+			{
+				//法向量为0,-1,0,右方
+				result.w = Direction::Right;
+			}
+			else if (tmp1.y > 0.5)
+			{
+				//法向量为0,1,0,左方
+				result.w = Direction::Left;
+			}
+			else if (tmp1.z < -0.5)
+			{
+				//法向量为0,0,-1,上方
+				result.w = Direction::Up;
+			}
+			else if (tmp1.z > 0.5)
+			{
+				//法向量为0,0,1,下方
+				result.w = Direction::Down;
+			}
+			return result;
+		}
+		else
+		{
+			float tx, ty, tz;
+			tz = 0;
+			ty = (tz - src.p1.z)*src.n.y / src.n.z + src.p1.y;
+			tx = (tz - src.p1.z)*src.n.x / src.n.z + src.p1.x;
+			if (ty >= 0 && ty <= (map->GetY()) && tx >= 0 && tx <= (map->GetX()))
+			{
+				return XMFLOAT4((int)tx, (int)ty, -1, Direction::Up);
+			}
+		}
+		//上面成功的进行了判断,可以得出grid编号了,不过还要算一下相交面(
+		return XMFLOAT4(-1, -1, -1, -1);
+	}
+
+	/*
+	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)
+	{
 		//Note: 使用除法次数过多,如果之后需要进行优化可以从这里下手
 		int e_y, e_z;
 		int x, y, z;
@@ -896,4 +1065,5 @@ namespace Nyan
 		}
 		return DirectX::XMFLOAT4(bx, by, bz, bplane);
 	}
+	*/
 }
