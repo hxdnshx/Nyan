@@ -794,7 +794,8 @@ namespace Nyan
 		XMVECTOR cpzxy;
 		XMFLOAT4 tmp1;
 		XMFLOAT4 tmp2;
-		for (int i = 0; i < 128; ++i)//最大深度为128
+		int i;
+		for (i = 0; i < 128; ++i)//最大深度为128
 		{
 			XMStoreFloat4(&tmp1, grid);
 			/*
