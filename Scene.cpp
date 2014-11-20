@@ -841,8 +841,15 @@ namespace Nyan
 		}
 		if (hit)
 		{
+			
 			XMFLOAT4 result;
 			result = tmp1; //所在方块
+			if (i == 0)
+			{
+				//这是在方块内部的情况
+				result.w = Direction::Up;
+				return result;
+			}
 			XMVECTOR normal;
 			normal = XMVectorMultiply(mask, grid_step);
 			XMStoreFloat4(&tmp1, normal);
