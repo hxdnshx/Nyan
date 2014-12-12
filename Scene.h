@@ -1,6 +1,7 @@
 #pragma once
 
 
+
 #include "MinimalAllocator.hpp"
 
 #define MINIMAL_USE_PROCESSHEAPSTRING
@@ -14,7 +15,9 @@
 #include "Map.h"
 #include "Line.h"
 
-#define VertexType NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex
+#include "VertexType.h"
+
+static_assert(std::is_standard_layout< VertexType >::value == 1, "VertexType must be POD type");
 
 namespace Nyan{
 	class Scene
@@ -38,7 +41,7 @@ namespace Nyan{
 		typedef std::pair<int, int> RenderInfo;
 
 		int m_vremain;
-		//用于存储每个体素(?)渲染的内容在缓存中的位置
+		//用于存储每个体素(伪)渲染的内容在缓存中的位置
 		//但是如果是为了实际渲染应该储存index而不是vertex啊- -
 		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< std::pair<int,int> > > m_offset;
 		Minimal::MinimalArrayT< RenderInfo > m_rinfo;

@@ -645,6 +645,7 @@ namespace Nyan
 
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
 			case NNN::es_GraphAPI::DX9:
+				assert(false);//Unaviliable running in DX9 Mode Currently
 				V(m_vb->Init_DX9(nullptr, sizeof(VertexType)*(m_vsize+100)));
 				V(m_ib->Init_DX9(nullptr, sizeof(WORD)*(m_isize+600)));
 				break;
@@ -652,6 +653,7 @@ namespace Nyan
 
 #if (NNN_PLATFORM != NNN_PLATFORM_WP8)
 			case NNN::es_GraphAPI::OpenGL:
+				assert(false);//Unaviliable running in OpenGL Mode currently
 				V(m_vb->Init_OpenGL(nullptr, sizeof(VertexType)*(m_vsize+100), GL_DYNAMIC_DRAW));
 				V(m_ib->Init_OpenGL(nullptr, sizeof(WORD)*(m_isize+600), GL_DYNAMIC_DRAW));
 				break;

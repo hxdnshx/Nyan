@@ -9,6 +9,8 @@
 
 #include "MinimalAllocator.hpp"
 
+#include "dxgi.h"
+
 #define MINIMAL_USE_PROCESSHEAPSTRING
 #include "MinimalPath.hpp"
 
@@ -36,10 +38,12 @@ using namespace Minimal;
 
 class NNN::State::c_RenderState		*g_render_state = nullptr;
 class NNN::State::c_SamplerState	*g_sampler_state = nullptr;
+class NNN::Shader::c_Effect *g_effect;
 class NNN::GUI::c_GUI_System *g_gui;
+class NNN::Shader::s_InputLayout *g_layout;
 
 boost::mt19937 randomx(114514);
-boost::uniform_int<int> normdist(0,127);
+boost::uniform_int<int> normdist(0,39);
 boost::variate_generator<boost::mt19937&, boost::uniform_int<int> > sampler(randomx,normdist);
 
 
@@ -68,6 +72,7 @@ bool lock = false;
 #endif
 int mode = 0;
 Nyan::TimerManage Tim;
+
 
 
 
@@ -135,7 +140,7 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	NNN::Device::DeviceContext::ClearDepthStencilView(D3D11_CLEAR_DEPTH, 1.0f, 0);
 	//NNN::Device::DeviceContext::IASetIndexBuffer(g_ib);
 	//NNN::Device::DeviceContext::IASetVertexBuffers(g_vb, sizeof(struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex));
-	NNN::Device::DeviceContext::IASetInputLayout(NNN::Shader::ShaderLibs::Texture::ColorTexture::GetInputLayout());
+	NNN::Device::DeviceContext::IASetInputLayout(g_layout);
 	//NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
@@ -213,7 +218,7 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 void ResetMap()
 {
 	//inst->GetMap()->LoadFromFile(L".\\DefaultMap.tmp");
-	return;
+	//return;
 
 	inst->GetMap()->SetBlock(0, 0, 0, 0);
 
@@ -229,12 +234,38 @@ void ResetMap()
 	inst->GetMap()->SetBlock(0, 0, 2, 0);
 	inst->GetMap()->SetBlock(0, 0, 3, 0);
 	int i;
-	/*
+	
 	for (i = 0; i < 5000; i++)
 	{
-		inst->GetMap()->SetBlock(sampler(), sampler(), sampler(), 1);
+		//inst->GetMap()->SetBlock(sampler(), sampler(), sampler(), 1);
 	}
-	*/
+	
+}
+
+
+void Init_Effect()
+{
+	struct NNN::Shader::c_Effect::s_init_param_info param_info_vs[] =
+	{
+		{ { "g_mWVP", NNN::Buffer::s_ConstantBuffer::es_ParamType::Matrix, 1, 0 }, 0 },
+	};
+	std::vector<struct NNN::Shader::c_Effect::s_init_param_info> params_vs;
+	for (int i = 0; i < _countof(param_info_vs); ++i)
+		params_vs.push_back(param_info_vs[i]);
+
+	const WCHAR k_EFFECT_NAME[] = L"DefaultTech";
+	NNN::Shader::Add_Effect_DX11(k_EFFECT_NAME,
+		L"voxel.fxo", &params_vs,
+		L"voxel.fxo", nullptr);
+	g_effect = NNN::Shader::Find_Effect(k_EFFECT_NAME);
+
+	g_layout = new struct NNN::Shader::s_InputLayout();
+	D3D11_INPUT_ELEMENT_DESC layout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	g_layout->Init_DX11(layout, _countof(layout), g_effect->DX11.m_vs);
 }
 
 /*==============================================================
@@ -268,6 +299,8 @@ void OnCreate_func(void* /*pUserContext*/)
 		//
 	}*/
 
+	Init_Effect();
+
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 
 	V(NNN::Texture::Add(L"Texture_Default.png",L"Texture_Default.png", 0xffff00ff, true));
@@ -281,6 +314,8 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	inst->LoadScene(L"DefaultMap.scfg");
 	character->LoadScene(L"Character.scfg");
+	//ResetMap();
+	//inst->InitBuffer();
 
 	/*
 	character->InitScene(22, 22, 22);
@@ -401,7 +436,7 @@ void OnDestroy_func(void* /*pUserContext*/)
 
 	
 
-
+	SAFE_RELEASE(g_layout);
 	SAFE_DELETE(g_render_state);
 	SAFE_DELETE(g_sampler_state);
 

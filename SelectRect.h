@@ -10,7 +10,7 @@
 #include "MinimalArray.hpp"
 
 #include "../../../Src/nnnEngine/nnn.h"
-#define VertexType NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex
+#include "VertexType.h"
 
 namespace Nyan{
 	class SelectRect

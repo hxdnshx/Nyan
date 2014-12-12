@@ -65,6 +65,7 @@
     <ClInclude Include="SelectRect.h" />
     <ClInclude Include="EditorGUI.h" />
     <ClInclude Include="TimerSys.h" />
+    <ClInclude Include="VertexType.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
@@ -114,5 +115,8 @@
     <None Include="AndroidApk\src\com\nnn\lib\nnnView.java">
       <Filter>AndroidApk\src\com\nnn\lib</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="voxel.fx" />
   </ItemGroup>
 </Project>
