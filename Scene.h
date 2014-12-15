@@ -36,6 +36,8 @@ namespace Nyan{
 		typedef std::pair < int, void* > DirtyData;
 		//Minimal::MinimalArrayT< DirtyData > m_DirtyList;
 		NNN::State::c_SamplerState* g_sampler_state;
+		bool TestVoxel(DirectX::XMINT3);
+		int AOMask(DirectX::XMINT3 dir, DirectX::XMINT3 n);
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
 		typedef std::pair<int, int> RenderInfo;
@@ -52,9 +54,10 @@ namespace Nyan{
 		//为了保证都能安全的释放
 		void InitBuffer();
 		void UpdateBuffer();
+	
 		inline void SetBlock(const int &x, const int &y, const int &z, const int val)
 		{}
-		void Render(int startcol,int endLayer=-1);
+		void Render(int startcol,int endLayer=-1,NNN::Shader::c_Effect* effect=nullptr);
 		NNN::Texture::c_Texture* GetPackedTexture(){ return m_pak.GetPackTexture(); }
 		inline NNN::Texture::s_TexturePiece* const GetPiece(int id){ return m_tptr[id]; }
 
@@ -68,6 +71,11 @@ namespace Nyan{
 				3-┘
 		*/
 		inline DirectX::XMFLOAT2 GetTexloc(int texID, int loc);
+
+		inline DirectX::XMFLOAT2 GetLoc(int loc)
+		{
+			return DirectX::XMFLOAT2((loc & 1) ? 1 : 0, (loc & 2) ? 1 : 0);
+		}
 		
 		DirectX::XMFLOAT4 TestCollisoin(const LineFunc& src);
 
