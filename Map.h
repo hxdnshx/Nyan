@@ -20,7 +20,6 @@ namespace Nyan
 		Right=Left<<1,
 		Front=Right<<1,
 		Back=Front<<1,
-
 		Direction_MAX=Back<<1
 	};
 	struct m_rect
@@ -141,20 +140,6 @@ namespace Nyan
 					EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
 					EXCEPTION_NONCONTINUABLE,
 					0, NULL); /* ¡« fin ¡« */
-			}
-			if (m_arr[m_col*m_row*x + m_col*y + z].first == -1)
-			{
-				return emptyblock;
-			}
-			return m_FastTable[m_arr[m_col*m_row*x + m_col*y + z].first][m_arr[m_col*m_row*x + m_col*y + z].second];
-		}
-
-		//Ô½½ç·µ»Øemptyblock;
-		inline const m_block& GetBlock_IgnoreBound(const int &x, const int &y, const int &z)
-		{
-			if (x < 0 || y < 0 || z < 0 || x >= (int)m_layer || y >= (int)m_row || z >= (int)m_col)
-			{
-				return emptyblock;
 			}
 			if (m_arr[m_col*m_row*x + m_col*y + z].first == -1)
 			{

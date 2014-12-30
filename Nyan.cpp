@@ -68,7 +68,6 @@ float ddz = 0;
 float tdx = -1;
 float tdy = -1;
 float tdz = -1;
-float lightdist = 50;
 bool lock = false;
 #endif
 int mode = 0;
@@ -144,10 +143,7 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	NNN::Device::DeviceContext::IASetInputLayout(g_layout);
 	//NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	class NNN::Shader::c_Effect *effect = g_effect;
-	float light_dir[] = { ddx, ddy, ddz, lightdist };
-	effect->SetFloatVector("g_Light", light_dir, 4);
-
+	class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
 
 
 	//DirectX::XMVECTOR Up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -193,16 +189,16 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 	
 	
-	character->Render(0,-1,g_effect);
+	character->Render(0);
 	
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 	
 	mWVP = g_World * mRot * g_View * g_Projection;
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 
-	inst->Render(0,-1,g_effect);
+	inst->Render(0);
 	
-	rect->Render(g_effect);
+	rect->Render();
 
 #if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
 	static WCHAR s_title_txt[100] = {0};
@@ -249,10 +245,9 @@ void ResetMap()
 
 void Init_Effect()
 {
-	NNN::Shader::c_Effect::s_init_param_info param_info_vs[] =
+	struct NNN::Shader::c_Effect::s_init_param_info param_info_vs[] =
 	{
 		{ { "g_mWVP", NNN::Buffer::s_ConstantBuffer::es_ParamType::Matrix, 1, 0 }, 0 },
-		{ { "g_Light", NNN::Buffer::s_ConstantBuffer::es_ParamType::Vector, 1, 64 }, 0 },
 	};
 	std::vector<struct NNN::Shader::c_Effect::s_init_param_info> params_vs;
 	for (int i = 0; i < _countof(param_info_vs); ++i)
@@ -260,8 +255,8 @@ void Init_Effect()
 
 	const WCHAR k_EFFECT_NAME[] = L"DefaultTech";
 	NNN::Shader::Add_Effect_DX11(k_EFFECT_NAME,
-		L"Shaders/dx11.vs.hlslo", &params_vs,
-		L"Shaders/dx11.ps.hlslo", nullptr);
+		L"voxel.fxo", &params_vs,
+		L"voxel.fxo", nullptr);
 	g_effect = NNN::Shader::Find_Effect(k_EFFECT_NAME);
 
 	g_layout = new struct NNN::Shader::s_InputLayout();
@@ -269,9 +264,6 @@ void Init_Effect()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT,0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0  }
 	};
 	g_layout->Init_DX11(layout, _countof(layout), g_effect->DX11.m_vs);
 }
@@ -504,16 +496,6 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 			g_cam.SetViewParams(vecEye, vecatori);
 		}
 	}
-#ifdef FastHack
-	if (nChar == '0')
-	{
-		lightdist += 10;
-	}
-	if (nChar == '1')
-	{
-		lightdist -= 10;
-	}
-#endif
 	if (nChar == 'F' || nChar == 'f')
 	{
 		inst->GetMap()->SaveToFile(L".\\DefaultMap.tmp");

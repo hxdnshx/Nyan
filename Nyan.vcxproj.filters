@@ -53,9 +53,6 @@
     <Filter Include="AndroidApk\src\com\nnn\lib">
       <UniqueIdentifier>{6f027d32-69e8-45ee-875d-25fdf50c575d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{c6cdbafb-42d0-4b61-9494-889039f70d7d}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Nyan.h" />
@@ -69,9 +66,6 @@
     <ClInclude Include="EditorGUI.h" />
     <ClInclude Include="TimerSys.h" />
     <ClInclude Include="VertexType.h" />
-    <ClInclude Include="Shaders\dx11.h">
-      <Filter>Shaders</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
@@ -123,11 +117,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\dx11.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\dx11.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <CustomBuild Include="voxel.fx" />
   </ItemGroup>
 </Project>
