@@ -36,7 +36,7 @@ namespace Nyan{
 		inline int GetZ(){ return z; }
 		inline int GetDir(){ return loc; }
 		void SetRectLocation(const int& nx, const int& ny, const int& nz, const int& direction);
-		void Render();
+		void Render(NNN::Shader::c_Effect *effect=nullptr);
 		~SelectRect();
 		SelectRect(Minimal::IMinimalAllocator *alloc) :x(0), y(0), z(0), loc(-1), m_alloc(alloc)
 		{

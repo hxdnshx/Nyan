@@ -25,15 +25,17 @@ namespace Nyan
 		loc = dir;
 		m_vlist.Grow(4);
 		m_ilist.Grow(6);
-		vert.m_Color = 0x883333ff;
-		vert.UpdateData();
+		//vert.m_Color = 0x883333ff;
+		//vert.UpdateData();
+		vert.m_Normal = DirectX::XMFLOAT3(0, 0, 0);
+		vert.aomask = 0;
 		if (dir != -1)
 		{
 			if ((dir & (Nyan::Down)) != 0)
 			{
 				itmp = m_vlist.GetSize();
-				vert.m_Color = 0xffffffff;
-				vert.m_Color_dx11_opengl = 0xffffffff;
+				//vert.m_Color = 0xffffffff;
+				//vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 0)*scale, (pz + 0)*scale - 0.1);
 				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
@@ -58,8 +60,8 @@ namespace Nyan
 			if ((dir & (Nyan::Up)) != 0)
 			{
 				itmp = m_vlist.GetSize();
-				vert.m_Color = 0xffffffff;
-				vert.m_Color_dx11_opengl = 0xffffffff;
+				//vert.m_Color = 0xffffffff;
+				//vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale, (pz + 1)*scale + 0.1);
 				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
@@ -85,8 +87,8 @@ namespace Nyan
 			if ((dir & (Nyan::Left)) != 0)
 			{
 				itmp = m_vlist.GetSize();
-				vert.m_Color = 0xffffffff;
-				vert.m_Color_dx11_opengl = 0xffffffff;
+				//vert.m_Color = 0xffffffff;
+				//vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale, (py + 0)*scale - 0.1, (pz + 1)*scale);
 				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
@@ -112,8 +114,8 @@ namespace Nyan
 			if ((dir & (Nyan::Right)) != 0)
 			{
 				itmp = m_vlist.GetSize();
-				vert.m_Color = 0xffffffff;
-				vert.m_Color_dx11_opengl = 0xffffffff;
+				//vert.m_Color = 0xffffffff;
+				//vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale, (py + 1)*scale + 0.1, (pz + 1)*scale);
 				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
@@ -139,8 +141,8 @@ namespace Nyan
 			if ((dir & (Nyan::Front)) != 0)
 			{
 				itmp = m_vlist.GetSize();
-				vert.m_Color = 0xffffffff;
-				vert.m_Color_dx11_opengl = 0xffffffff;
+				//vert.m_Color = 0xffffffff;
+				//vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 1)*scale + 0.1, (py + 0)*scale, (pz + 1)*scale);
 				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
@@ -166,8 +168,8 @@ namespace Nyan
 			if ((dir & (Nyan::Back)) != 0)
 			{
 				itmp = m_vlist.GetSize();
-				vert.m_Color = 0xffffffff;
-				vert.m_Color_dx11_opengl = 0xffffffff;
+				//vert.m_Color = 0xffffffff;
+				//vert.m_Color_dx11_opengl = 0xffffffff;
 				vert.m_Pos = DirectX::XMFLOAT3((x + 0)*scale - 0.1, (py + 1)*scale, (pz + 1)*scale);
 				vert.m_Tex = GetTexloc( 0);
 				m_vlist.Push(vert);
@@ -197,10 +199,10 @@ namespace Nyan
 		m_ib->Unmap();
 	}
 
-	void SelectRect::Render()
+	void SelectRect::Render(NNN::Shader::c_Effect *effect)
 	{
 		if (loc == -1)return;
-		class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
+		//class NNN::Shader::c_Effect *effect = NNN::Shader::ShaderLibs::Texture::ColorTexture::GetEffect();
 
 		NNN::Device::DeviceContext::IASetIndexBuffer(m_ib);
 		NNN::Device::DeviceContext::IASetVertexBuffers(m_vb, sizeof(VertexType));
