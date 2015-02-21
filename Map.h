@@ -8,7 +8,7 @@
 #define MINIMAL_USE_PROCESSHEAPARRAY
 #include "MinimalArray.hpp"
 
-//#define Nyan_Map_EnableMaskOptimization
+#define Nyan_Map_EnableMaskOptimization
 
 
 namespace Nyan

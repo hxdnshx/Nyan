@@ -192,8 +192,10 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	mWVP = g_scale * g_World  * mRot * g_View * g_Projection;
 	effect->SetMatrix("g_mWVP", (const float*)&mWVP);
 	
-	
-	character->Render(0,-1,g_effect);
+#ifdef FastHack
+	if (!lock)
+#endif
+		character->Render(0,-1,g_effect);
 	
 	g_World = DirectX::XMMatrixTranslation(0, 0, 0);
 	
