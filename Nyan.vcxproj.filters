@@ -72,6 +72,8 @@
     <ClInclude Include="Shaders\dx11.h">
       <Filter>Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="OctMap.h" />
+    <ClInclude Include="RayTraceDataGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
@@ -123,11 +125,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\dx11.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\dx11.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <Text Include="Shaders\dx11.ps.hlsl" />
+    <Text Include="Shaders\dx11.vs.hlsl" />
   </ItemGroup>
 </Project>

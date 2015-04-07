@@ -504,6 +504,8 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="Nyan.h" />
     <ClInclude Include="Android\com_nnn_lib.h" />
+    <ClInclude Include="OctMap.h" />
+    <ClInclude Include="RayTraceDataGenerator.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="SelectRect.h" />

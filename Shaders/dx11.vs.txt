@@ -33,6 +33,7 @@
 vs_5_0
 dcl_globalFlags refactoringAllowed
 dcl_constantbuffer cb0[5], immediateIndexed
+dcl_resource_structured t0, 4 
 dcl_input v0.xyz
 dcl_input v1.xy
 dcl_input v2.xyz
@@ -64,7 +65,7 @@ dp3 r0.y, v2.xyzx, v2.xyzx
 ne r0.y, r0.y, l(0.000000)
 movc o1.z, r0.y, r0.x, l(1.000000)
 mov o1.xy, v1.xyxx
-mov o2.x, v3.x
+ld_structured_indexable(structured_buffer, stride=4)(mixed,mixed,mixed,mixed) o2.x, v3.x, l(0), t0.xxxx
 mov o3.xy, v4.xyxx
 ret 
 // Approximately 0 instruction slots used

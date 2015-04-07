@@ -15,7 +15,7 @@
 // -------------------- ----- ------ -------- -------- ------ ------
 // SV_POSITION              0   xyzw        0      POS  float       
 // TEXCOORD                 0   xy          1     NONE  float   xy  
-// BLENDWEIGHT              0     z         1     NONE  float     z 
+// BLENDWEIGHT              0     z         1     NONE  float       
 // BLENDINDICES             0   x           2     NONE    int   x   
 // TEXCOORD                 1   xy          3     NONE  float   xy  
 //
@@ -31,7 +31,6 @@ dcl_globalFlags refactoringAllowed
 dcl_sampler s0, mode_default
 dcl_resource_texture2d (float,float,float,float) t0
 dcl_input_ps linear v1.xy
-dcl_input_ps linear v1.z
 dcl_input_ps constant v2.x
 dcl_input_ps linear v3.xy
 dcl_output o0.xyzw
@@ -51,18 +50,7 @@ mad r0.x, v3.x, r0.y, r0.x
 mad r0.x, -r0.x, l(0.300000), l(1.000000)
 movc r0.x, v2.x, r0.x, l(1.000000)
 sample_indexable(texture2d)(float,float,float,float) r0.yzw, v1.xyxx, t0.wxyz, s0
-mul r0.xyz, r0.xxxx, r0.yzwy
-mul r0.xyz, r0.xyzx, v1.zzzz
-add r1.xy, v3.xyxx, l(-0.500000, -0.500000, 0.000000, 0.000000)
-add r1.xy, -|r1.xyxx|, l(0.500000, 0.500000, 0.000000, 0.000000)
-min r0.w, r1.y, r1.x
-lt r1.xy, l(0.020000, 0.020000, 0.000000, 0.000000), r1.xyxx
-and r1.x, r1.y, r1.x
-mul r0.w, r0.w, l(50.000000)
-max r0.w, r0.w, l(0.500000)
-movc r0.w, r1.x, l(1.000000), r0.w
-mul r0.xyz, r0.wwww, r0.xyzx
-mul o0.xyz, r0.xyzx, l(1.800000, 1.800000, 1.800000, 0.000000)
+mul o0.xyz, r0.xxxx, r0.yzwy
 mov o0.w, l(1.000000)
 ret 
 // Approximately 0 instruction slots used

@@ -84,5 +84,5 @@ float4 PS( VS_OUTPUT input ) : SV_Target
 	aoresult = ao(input.m_aomask, input.m_PosOffset);
 	diff = input.m_Normal;//diffuse(input.m_Pos.xyz, input.m_Normal);
 	ColorFin = g_Texture.Sample(MeshTextureSampler, input.m_Tex);
-    return float4(ColorFin.xyz*aoresult*diff*gridresult*1.8,1.0);
+    return float4(ColorFin.xyz*aoresult,1.0);
 }

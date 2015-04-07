@@ -208,7 +208,7 @@ namespace Nyan
 		NNN::Device::DeviceContext::IASetVertexBuffers(m_vb, sizeof(VertexType));
 		NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		NNN::Device::DeviceContext::SetEffect(effect, NNN_SHADER_LIBS_TEXTURE_COLORTEXTURE_DX9_TECH_NAME);
+		NNN::Device::DeviceContext::SetEffect(effect);
 
 		//NNN::Device::DeviceContext::Draw(4);
 

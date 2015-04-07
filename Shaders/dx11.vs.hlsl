@@ -9,6 +9,8 @@ cbuffer ConstantBuffer : register( b0 )
 	float4 g_Light;
 }
 
+StructuredBuffer<int> buff;
+
 //float4 g_Light;
 
 float diffuse(float3 v, float3 n)
@@ -34,7 +36,7 @@ VS_OUTPUT VS(float3 a_Pos : POSITION0, float2 Tex: TEXCOORD0,float3 normal: NORM
     output.m_Pos	= mul(Pos, g_mWVP);
     output.m_Tex = Tex;
 	output.m_Normal = diffuse(a_Pos.xyz, normal);//normal;
-	output.m_aomask = aomask;
+	output.m_aomask = buff[aomask];
 	output.m_PosOffset = PosOffset;
 
     return output;

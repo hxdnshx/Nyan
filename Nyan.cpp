@@ -125,6 +125,106 @@ void Init_SamplerState()
 	g_sampler_state->SetAddressV(D3D11_TEXTURE_ADDRESS_CLAMP);
 }
 
+
+ID3D11Buffer *p_ByteAddrBuffer;
+ID3D11ShaderResourceView *p_ByteAddrBufferView;
+
+HRESULT CreateStructureBuffer(ID3D11Device* pDevice, UINT elementSize, UINT uCount, void* pInitData, ID3D11Buffer** ppBufferOut)
+{
+	*ppBufferOut = NULL;
+
+	D3D11_BUFFER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+	desc.ByteWidth = elementSize*uCount;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	desc.StructureByteStride = elementSize;
+
+	if (pInitData)
+	{
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = pInitData;
+		return pDevice->CreateBuffer(&desc, &InitData, ppBufferOut);
+	}
+	else
+		return pDevice->CreateBuffer(&desc, NULL, ppBufferOut);
+}
+
+//利用ID3D11Device::CreateShaderResouceView()来创建GPU中Buffer的resourceView
+HRESULT CreateBufferSRV(ID3D11Device* pDevice, ID3D11Buffer* pBuffer, ID3D11ShaderResourceView** ppSRVOut)
+{
+	D3D11_BUFFER_DESC descBuf;
+	ZeroMemory(&descBuf, sizeof(descBuf));
+	pBuffer->GetDesc(&descBuf);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+	desc.BufferEx.FirstElement = 0;
+
+	//假定这是个structure buffer
+	desc.Format = DXGI_FORMAT_UNKNOWN;
+	desc.BufferEx.NumElements = descBuf.ByteWidth/16;
+
+	return pDevice->CreateShaderResourceView(pBuffer, &desc, ppSRVOut);
+}
+
+void Init_Buffer()
+{
+	int mem[8192/4];
+	D3D11_SUBRESOURCE_DATA dat;
+	for (int i = 0; i < 8192/4; ++i)
+	{
+		mem[i] = 2;
+	}
+	dat.pSysMem = mem;
+	dat.SysMemPitch = 0;
+	dat.SysMemSlicePitch = 0;
+	ID3D11Buffer *pStructuredBuffer;   // Create Structured Buffer 
+	D3D11_BUFFER_DESC sbDesc;  
+	sbDesc.BindFlags            = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;  
+	sbDesc.CPUAccessFlags = 0;// D3D11_CPU_ACCESS_WRITE;
+	sbDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;//D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+	sbDesc.StructureByteStride  = 4;  //This Structure is not represents a structured buffer
+	sbDesc.ByteWidth            = 8192; // Test 
+	sbDesc.Usage                = D3D11_USAGE_DEFAULT;
+	//在完成测试后请移动到单独的类中
+	auto p_device = NNN::DXUTGetD3D11Device();
+	auto r2=p_device->CreateBuffer(&sbDesc, &dat, &p_ByteAddrBuffer);
+	//auto r = CreateBufferSRV(NNN::DXUTGetD3D11Device(), p_ByteAddrBuffer, &p_ByteAddrBufferView);
+	//return;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+	memset(&srDesc, 0, sizeof(srDesc));
+	srDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+	srDesc.BufferEx.Flags = 0;//D3D11_BUFFEREX_SRV_FLAG_RAW;
+	srDesc.BufferEx.NumElements = 8192/16;
+	srDesc.BufferEx.FirstElement = 0;
+	auto r = p_device->CreateShaderResourceView(p_ByteAddrBuffer,&srDesc,&p_ByteAddrBufferView);// , &srDesc, NULL);
+	if (r == NULL)
+	{
+		int i = 1;
+		return;
+	}
+}
+
+void Init_Bufferx()
+{
+	HRESULT r = CreateStructureBuffer(NNN::DXUTGetD3D11Device(), 4, 8192, nullptr, &p_ByteAddrBuffer);
+	HRESULT r1 = CreateBufferSRV(NNN::DXUTGetD3D11Device(), p_ByteAddrBuffer, &p_ByteAddrBufferView);
+}
+
+void Buffer_FillData()
+{
+	return;//下面的代码是不可达的
+	D3D11_MAPPED_SUBRESOURCE mappedRes;
+	char* p_data;
+	NNN::DXUTGetD3D11DeviceContext()->Map(p_ByteAddrBuffer, 0, D3D11_MAP_WRITE, 0, &mappedRes);
+	p_data = (char*)mappedRes.pData;
+	
+	NNN::DXUTGetD3D11DeviceContext()->Unmap(p_ByteAddrBuffer, 0);
+}
+
 /*==============================================================
  * 通用渲染函数
  * Render()
@@ -143,10 +243,12 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	//NNN::Device::DeviceContext::IASetVertexBuffers(g_vb, sizeof(struct NNN::Shader::ShaderLibs::Texture::ColorTexture::s_Vertex));
 	NNN::Device::DeviceContext::IASetInputLayout(g_layout);
 	//NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	NNN::DXUTGetD3D11DeviceContext()->VSSetShaderResources(0, 1, &p_ByteAddrBufferView);
 
 	class NNN::Shader::c_Effect *effect = g_effect;
 	float light_dir[] = { ddx, ddy, ddz, lightdist };
 	effect->SetFloatVector("g_Light", light_dir, 4);
+	
 
 
 
@@ -407,6 +509,8 @@ void OnCreate_func(void* /*pUserContext*/)
 
 	ctex = 0;
 	rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
+	Init_Buffer();
+	Buffer_FillData();
 	
 	//g_View = NNN::Misc::GetOrthoView();
 	
@@ -422,7 +526,7 @@ void OnCreate_func(void* /*pUserContext*/)
 
 
 
-	ChangeSize(NNN::Misc::GetClientWidth(), NNN::Misc::GetClientHeight());
+	ChangeSize(NNN::Misc::GetClientSize().cx, NNN::Misc::GetClientSize().cy);
 
 	Init_RenderState();
 	Init_SamplerState();
@@ -442,7 +546,8 @@ void OnDestroy_func(void* /*pUserContext*/)
 	delete character;
 	delete rect;
 
-	
+	SAFE_RELEASE(p_ByteAddrBufferView);
+	SAFE_RELEASE(p_ByteAddrBuffer);
 
 	SAFE_RELEASE(g_layout);
 	SAFE_DELETE(g_render_state);
@@ -474,7 +579,7 @@ void OnLost_dx9(void* /*pUserContext*/)
 void ChangeSize(UINT width, UINT height)
 {
 	if (width > 0 && height > 0)
-		g_Projection = NNN::Misc::GetPerspectiveFovLH((int)width, (int)height);
+		g_Projection = NNN::Misc::GetPerspectiveLH((int)width, (int)height);
 }
 
 
@@ -542,9 +647,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	{
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-			(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+			(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize(false).cx - 1) /
 			g_Projection.r[0].m128_f32[0],
-			-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+			-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientSize(false).cy - 1) /
 			g_Projection.r[1].m128_f32[1], 1, 0);
 		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
@@ -620,9 +725,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 			{
 				DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 				DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize(false).cx - 1) /
 					g_Projection.r[0].m128_f32[0],
-					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientSize(false).cy - 1) /
 					g_Projection.r[1].m128_f32[1], 1, 0);
 				DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 				DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
@@ -694,9 +799,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 			{
 				DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 				DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize(false).cx - 1) /
 					g_Projection.r[0].m128_f32[0],
-					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientSize(false).cy - 1) /
 					g_Projection.r[1].m128_f32[1], 1, 0);
 				DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 				DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
@@ -927,7 +1032,7 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 
 	{
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
-		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)m_lx * 2 / NNN::Misc::GetClientWidth(false) - 1) / g_Projection.r[0].m128_f32[0], -((float)m_ly * 2 / NNN::Misc::GetClientHeight(false) - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
+		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)m_lx * 2 / NNN::Misc::GetClientSize(false).cx - 1) / g_Projection.r[0].m128_f32[0], -((float)m_ly * 2 / NNN::Misc::GetClientSize(false).cy - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
 		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
 		DirectX::XMMATRIX rotinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixRotationX(-0.5 * 3.141592));
@@ -1028,7 +1133,7 @@ void CALLBACK main_func()
 	WCHAR *file_list[] =
 	{
 		L"nnnEngine.whp",
-		L"Nyan.whp",
+		//L"Nyan.whp",
 	};
 
 	std::vector<std::wstring> packet_list;
