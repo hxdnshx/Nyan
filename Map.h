@@ -8,7 +8,7 @@
 #define MINIMAL_USE_PROCESSHEAPARRAY
 #include "MinimalArray.hpp"
 
-//#define Nyan_Map_EnableMaskOptimization
+#define Nyan_Map_EnableMaskOptimization
 
 
 namespace Nyan
@@ -176,6 +176,9 @@ namespace Nyan
 
 		}
 
+		/*
+			return EmptyBlock(-1)when wanted rect is empty
+		*/
 		inline const m_block& At(const int &x, const int &y, const int &z)
 		{
 			return GetBlock(x, y, z);

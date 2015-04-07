@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <map>
 
 #include "MinimalAllocator.hpp"
 
@@ -20,6 +20,7 @@
 static_assert(std::is_standard_layout< VertexType >::value == 1, "VertexType must be POD type");
 
 namespace Nyan{
+	using std::map;
 	class Scene
 	{
 	protected:
@@ -38,15 +39,14 @@ namespace Nyan{
 		NNN::State::c_SamplerState* g_sampler_state;
 		bool TestVoxel(DirectX::XMINT3);
 		int AOMask(DirectX::XMINT3 dir, DirectX::XMINT3 n);
+		
 	public:
 		typedef Minimal::MinimalArrayT < BYTE >  SaveFormat;
-		typedef std::pair<int, int> RenderInfo;
 
 		int m_vremain;
 		//用于存储每个体素(伪)渲染的内容在缓存中的位置
 		//但是如果是为了实际渲染应该储存index而不是vertex啊- -
-		Minimal::MinimalArrayT< Minimal::ProcessHeapArrayT< std::pair<int,int> > > m_offset;
-		Minimal::MinimalArrayT< RenderInfo > m_rinfo;
+		std::hash_map<int,int> m_offset;
 		Minimal::MinimalArrayT< Minimal::ProcessHeapStringW > m_Texture;
 		NNN::Texture::c_PackTexture m_pak;
 		
@@ -77,15 +77,19 @@ namespace Nyan{
 			return DirectX::XMFLOAT2((loc & 1) ? 1 : 0, (loc & 2) ? 1 : 0);
 		}
 		
+		/* return Int Value*/
 		DirectX::XMFLOAT4 TestCollisoin(const LineFunc& src);
+		/* return Float Value*/
+		DirectX::XMFLOAT4 GetIntersect(const LineFunc& src);
 
 		//void SaveScene(__out SaveFormat &bin);
 		void LoadScene(__in wchar_t* src);
 		void InitScene(__in int x, __in int y, __in int z);
+		void InitIndex(int lowx, int highx, int lowy, int highy, int lowz, int highz);
 		inline Map3D* GetMap(){return map;}
 		void ImportTexture(__in wchar_t* ptr);
 		Scene(Minimal::IMinimalAllocator *alloc) :
-			m_tptr(alloc), m_tstr(alloc), m_rinfo(alloc), m_vsize(0), m_isize(0), m_offset(alloc),
+			m_tptr(alloc), m_tstr(alloc), m_vsize(0), m_isize(0),
 			m_pak(), m_Texture(alloc), m_groundflag(true)
 		{
 			g_sampler_state = new NNN::State::c_SamplerState();
