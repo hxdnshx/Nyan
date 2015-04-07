@@ -23,12 +23,6 @@
     <Filter Include="WP8">
       <UniqueIdentifier>{bfb9236f-7e41-4226-b871-012d977eddc2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Assets">
-      <UniqueIdentifier>{28c80670-00fb-4ee4-a9f1-b4b9e204dd16}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Tiles">
-      <UniqueIdentifier>{70a96547-ea2b-4dbe-95b7-e0191b018a37}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Files">
       <UniqueIdentifier>{4e8bca26-0f4f-4014-bfee-2261a5c79ec6}</UniqueIdentifier>
     </Filter>
@@ -56,6 +50,12 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{c6cdbafb-42d0-4b61-9494-889039f70d7d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AndroidApk\Assets">
+      <UniqueIdentifier>{28c80670-00fb-4ee4-a9f1-b4b9e204dd16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AndroidApk\Tiles">
+      <UniqueIdentifier>{70a96547-ea2b-4dbe-95b7-e0191b018a37}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Nyan.h" />
@@ -75,25 +75,25 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Tiles\FlipCycleTileLarge.png">
-      <Filter>Assets\Tiles</Filter>
+      <Filter>AndroidApk\Tiles</Filter>
     </Image>
     <Image Include="Assets\Tiles\FlipCycleTileMedium.png">
-      <Filter>Assets\Tiles</Filter>
+      <Filter>AndroidApk\Tiles</Filter>
     </Image>
     <Image Include="Assets\Tiles\FlipCycleTileSmall.png">
-      <Filter>Assets\Tiles</Filter>
+      <Filter>AndroidApk\Tiles</Filter>
     </Image>
     <Image Include="Assets\Tiles\IconicTileMediumLarge.png">
-      <Filter>Assets\Tiles</Filter>
+      <Filter>AndroidApk\Tiles</Filter>
     </Image>
     <Image Include="Assets\Tiles\IconicTileSmall.png">
-      <Filter>Assets\Tiles</Filter>
+      <Filter>AndroidApk\Tiles</Filter>
     </Image>
     <Image Include="Assets\AlignmentGrid.png">
-      <Filter>Assets</Filter>
+      <Filter>AndroidApk\Assets</Filter>
     </Image>
     <Image Include="Assets\ApplicationIcon.png">
-      <Filter>Assets</Filter>
+      <Filter>AndroidApk\Assets</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -123,11 +123,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\dx11.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\dx11.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <Text Include="Shaders\dx11.ps.hlsl" />
+    <Text Include="Shaders\dx11.vs.hlsl" />
   </ItemGroup>
 </Project>

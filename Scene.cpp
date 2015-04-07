@@ -432,7 +432,7 @@ namespace Nyan
 		//Ground
 		if (m_groundflag)
 		{
-			vert.m_Normal = DirectX::XMFLOAT3(0, 0, 0);
+			vert.m_Normal = DirectX::XMFLOAT3(0, 0, 1);
 			vert.m_Pos = DirectX::XMFLOAT3(0, 0, 0);
 			vert.m_Tex = GetTexloc(7, 0);
 			vert.aomask = 0;
@@ -456,13 +456,9 @@ namespace Nyan
 		m_ilist.Push((WORD)itmp + 2);
 		m_ilist.Push((WORD)itmp + 3);
 
-		m_offset.Fill(map->GetT());
 		m_vlist.Grow(100 + m_vsize);
 		m_ilist.Grow(100 + m_isize);
-		for (i = 0; i < map->GetT(); ++i)
-		{
-			m_offset[i].Clear();
-		}
+		m_offset.clear();
 		for (i = 0; i < map->GetT(); ++i)
 		{
 			for (j = 0; j < (int)map->m_FastTable[i].GetSize();++j)
@@ -471,8 +467,8 @@ namespace Nyan
 				x = tptr->x;
 				py = tptr->y;
 				pz = tptr->z;
-				m_offset[i].Push(std::pair<int,int>(m_ilist.GetSize(),0));
 				length = 0;
+				m_offset[map->GetZ()*map->GetY()*x + map->GetZ()*py + pz] = m_vlist.GetSize();
 #if defined(Nyan_Map_EnableMaskOptimization)
 #else
 				tptr->mask=0;
@@ -678,7 +674,7 @@ namespace Nyan
 					m_ilist.Push((WORD)itmp + 3);
 				}
 
-				m_offset[i].Top().second = length*6;
+				//m_offset[i].Top().second = length*6;
 
 			}
 		}
@@ -744,6 +740,172 @@ namespace Nyan
 		m_vremain = 100;
 	}
 
+	void Scene::InitIndex(int lowx, int highx, int lowy, int highy, int lowz, int highz)
+	{
+		//Minimal::MinimalArrayT< VertexType > m_vlist(m_alloc);
+		Minimal::MinimalArrayT< WORD > m_ilist(m_alloc);
+		//int i, j;
+		int x, py, pz;
+		//VertexType vert;
+		int itmp;
+		const m_block* tptr;
+
+		itmp = 0;
+	
+		//Ground
+		if (m_groundflag)
+		{
+			m_ilist.Push((WORD)itmp + 3);
+			m_ilist.Push((WORD)itmp + 1);
+			m_ilist.Push((WORD)itmp + 0);
+			m_ilist.Push((WORD)itmp + 0);
+			m_ilist.Push((WORD)itmp + 2);
+			m_ilist.Push((WORD)itmp + 3);
+		}
+
+		m_ilist.Grow(100 + m_isize);
+		m_offset.clear();
+		for (x = lowx; x < highx; ++x)
+		{
+			for (py = lowy; py < highy; ++py)
+			{
+				for (pz = lowz; pz < highz; ++pz)
+				{
+					tptr = &(map->At(x, py, pz));
+					if (tptr->TexType == -1)continue;
+					itmp = m_offset[map->GetZ()*map->GetY()*x + map->GetZ()*py + pz];
+#if defined(Nyan_Map_EnableMaskOptimization)
+#else
+					tptr->mask = 0;
+#endif
+					if ((tptr->mask & (Nyan::Down)) == 0)
+					{
+						//vert.m_Color = 0xffffffff;
+						//vert.m_Color_dx11_opengl = 0xffffffff;
+
+						m_ilist.Push((WORD)itmp + 3);
+						m_ilist.Push((WORD)itmp + 1);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 2);
+						m_ilist.Push((WORD)itmp + 3);
+				}
+					//continue;
+
+					if ((tptr->mask & (Nyan::Up)) == 0)
+					{
+
+						m_ilist.Push((WORD)itmp + 3);
+						m_ilist.Push((WORD)itmp + 1);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 2);
+						m_ilist.Push((WORD)itmp + 3);
+					}
+
+					//continue;
+
+					if ((tptr->mask & (Nyan::Left)) == 0)
+					{
+						m_ilist.Push((WORD)itmp + 3);
+						m_ilist.Push((WORD)itmp + 1);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 2);
+						m_ilist.Push((WORD)itmp + 3);
+					}
+
+					//continue;
+
+					if ((tptr->mask & (Nyan::Right)) == 0)
+					{
+						m_ilist.Push((WORD)itmp + 3);
+						m_ilist.Push((WORD)itmp + 1);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 2);
+						m_ilist.Push((WORD)itmp + 3);
+					}
+
+
+
+					if ((tptr->mask & (Nyan::Front)) == 0)
+					{
+						m_ilist.Push((WORD)itmp + 3);
+						m_ilist.Push((WORD)itmp + 1);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 2);
+						m_ilist.Push((WORD)itmp + 3);
+					}
+
+					//continue;
+
+					if ((tptr->mask & (Nyan::Back)) == 0)
+					{
+						m_ilist.Push((WORD)itmp + 3);
+						m_ilist.Push((WORD)itmp + 1);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 0);
+						m_ilist.Push((WORD)itmp + 2);
+						m_ilist.Push((WORD)itmp + 3);
+					}
+
+					//m_offset[i].Top().second = length*6;
+				}
+			}
+		}
+
+		HRESULT hr;
+		NNN::es_GraphAPI graph_api = NNN::GetGraphAPI();
+		if (m_ilist.GetSize() > m_isize)
+		{
+			SAFE_RELEASE(m_ib);
+			m_isize = m_ilist.GetSize();
+		}
+		if (m_ib == nullptr)
+		{
+			if (map == nullptr)
+			{
+				return;
+			}
+
+
+			//NNN::SetLogError_nnnEngine(true);
+			//NNN::SetLogError_nnnLib(true);
+			//m_vb = nullptr;
+			//m_ib = nullptr;
+			m_ib = new struct NNN::Buffer::s_IndexBuffer();
+
+			switch (graph_api)
+			{
+#if (NNN_PLATFORM == NNN_PLATFORM_WIN32) || (NNN_PLATFORM == NNN_PLATFORM_WP8)
+			case NNN::es_GraphAPI::DX11:
+				V(m_ib->Init_DX11(NULL, sizeof(WORD)*(m_isize + 600), D3D11_USAGE_DYNAMIC, 0, D3D11_CPU_ACCESS_WRITE));
+				break;
+#endif	// NNN_PLATFORM_WIN32 || NNN_PLATFORM_WP8
+
+#if (NNN_PLATFORM == NNN_PLATFORM_WIN32)
+			case NNN::es_GraphAPI::DX9:
+				assert(false);//Unaviliable running in DX9 Mode Currently
+				V(m_ib->Init_DX9(nullptr, sizeof(WORD)*(m_isize + 600)));
+				break;
+#endif	// NNN_PLATFORM_WIN32
+
+#if (NNN_PLATFORM != NNN_PLATFORM_WP8)
+			case NNN::es_GraphAPI::OpenGL:
+				assert(false);//Unaviliable running in OpenGL Mode currently
+				V(m_ib->Init_OpenGL(nullptr, sizeof(WORD)*(m_isize + 600), GL_DYNAMIC_DRAW));
+				break;
+#endif	// !NNN_PLATFORM_WP8
+			}
+		}
+
+		m_ib->Map();
+		m_ib->Fill_Data(m_ilist.GetRaw(), sizeof(WORD)*m_ilist.GetSize(), 0);
+		m_ib->Unmap();
+	}
+
 	DirectX::XMFLOAT2 Scene::GetTexloc(int texID, int loc)
 	{
 		return DirectX::XMFLOAT2((loc & 0x1) > 0 ? m_tptr[texID]->m_max_u : m_tptr[texID]->m_min_u, (loc & 0x2) > 0 ? m_tptr[texID]->m_max_v : m_tptr[texID]->m_min_v);
@@ -801,6 +963,167 @@ namespace Nyan
 	inline int FitFunc(int x, int y, int z, float ox,float oy, float oz)
 	{//当时对每个xyz量都加了0.5,具体原因记不清了,先删掉试试
 		return 32768 - (ox - x)*(ox - x) - (oy - y)*(oy - y) - (oz - z)*(oz - z);
+	}
+
+
+
+	DirectX::XMFLOAT4 Scene::GetIntersect(const LineFunc& src)
+	{
+		/*
+		// grid space
+		vec3 grid = floor( pos ); //向下取整将坐标在网格中使用
+		vec3 grid_step = sign( dir ); //获取dir(方向)的正负符号<-意思就是说获取网格的步进方向,虽然只是正负
+		vec3 corner = max( grid_step, vec3( 0.0 ) );//负号->0 //应该是最后在步进方向上产生的偏差值,但是原因不明
+
+		// ray space
+		vec3 inv = vec3( 1.0 ) / dir; //取倒数使得各个方向的比值倒过来
+		vec3 ratio = ( grid + corner - pos ) * inv;//corn+pos的小数部分
+		vec3 ratio_step = grid_step * inv;//不懂
+		//于是这个rayspace只是提供一个比值,来决定grid的步进么
+
+		// dda <-数值微分法
+		float hit = -1.0;
+		for ( int i = 0; i < 128; i++ ) {
+		if ( voxel( grid ) > 0.5 ) {
+
+		hit = 1.0;
+		break;   //这里应该是可以直接退出循环的,感觉没什么区别
+		continue;
+		}
+
+		vec3 cp = step( ratio, ratio.yzx );//二维情况的搞清楚了,问题还有就是在三维空间上的扩展
+
+		mask = cp * ( vec3( 1.0 ) - cp.zxy );
+
+		grid  += grid_step  * mask;  
+		ratio += ratio_step * mask;
+		}
+
+		center = grid + vec3( 0.5 );//中心形式表示(跟grid应该没区别吧0 0)
+		return dot(ratio - ratio_step,vec3(1.0)) * hit;//dot( ratio - ratio_step, mask ) * hit;
+		//这里关心的是hit的深度好像
+		*/
+		//p1是起点
+		XMVECTOR start = XMLoadFloat4(&(src.p1));
+		XMVECTOR dir = XMVector3Normalize(XMLoadFloat4(&(src.n)));
+		XMVECTOR zero = XMVectorSetBinaryConstant(0, 0, 0, 0);
+		XMVECTOR one = XMVectorSetBinaryConstant(1, 1, 1, 1);
+
+
+		XMVECTOR grid;
+		XMVECTOR grid_step;
+		XMVECTOR grid_corner;
+		grid = XMVectorFloor(start);//实际上w分量为0应该就不影响了吧(
+		//好像DirectXMath没有提供Sign的函数(于是用了一个挺别扭的方法- -
+		//grid_step 就是 sign_dir
+		grid_step = DirectX::XMVectorOrInt(DirectX::XMVectorAndInt(dir, DirectX::XMVectorSplatSignMask()), DirectX::XMVectorSplatOne());
+		grid_corner = XMVectorClamp(grid_step, zero, one);
+
+		XMVECTOR inv;
+		XMVECTOR ratio;
+		XMVECTOR ratio_step;
+		inv = XMVectorReciprocal(dir);
+		ratio = XMVectorMultiply(XMVectorSubtract(XMVectorAdd(grid, grid_corner), start), inv);
+		ratio_step = XMVectorMultiply(grid_step, inv);
+
+		bool hit = false;
+		XMVECTOR cp;
+		XMVECTOR mask;
+		XMVECTOR ratioyzx;
+		XMVECTOR cpzxy;
+		XMFLOAT4 tmp1;
+		XMFLOAT4 tmp2;
+		int i;
+		for (i = 0; i < 128; ++i)//最大深度为128
+		{
+			XMStoreFloat4(&tmp1, grid);
+			/*
+			__try{
+			if (map->At(tmp1.x, tmp1.y, tmp1.z).TexType != -1)
+			{
+			hit = true;
+			break;
+			}
+			}
+			__except ((GetExceptionCode() == EXCEPTION_ARRAY_BOUNDS_EXCEEDED)?EXCEPTION_EXECUTE_HANDLER:EXCEPTION_CONTINUE_SEARCH)
+			{
+			//捕获越界错误作为跳出条件,看看有没有问题...
+			break;
+			}
+			*/
+			//理论上来说异常的话处理代价太大,还是判断一下range吧= =
+			if ((map->IsLocationInRange(tmp1.x, tmp1.y, tmp1.z)))
+			{
+				if (map->At(tmp1.x, tmp1.y, tmp1.z).TexType != -1)
+				{
+					hit = true;
+					break;
+				}
+			}
+			/*
+			修正:发生越界的时候并不一定就要终止,需要考虑到从值域外射出的射线.....
+			不过就算不break效率应该也比原先的算法要高...(除了要限制一下最大遍历深度这方面
+			*/
+
+
+			XMStoreFloat4(&tmp1, ratio);
+			tmp2.x = tmp1.y; tmp2.y = tmp1.z; tmp2.z = tmp1.x;
+			ratioyzx = XMLoadFloat4(&tmp2);
+
+			cp = XMVectorAndInt(XMVectorGreaterOrEqual(ratioyzx, ratio), XMVectorSplatOne());//1 or 0
+			XMStoreFloat4(&tmp1, cp);
+			tmp2.x = tmp1.z; tmp2.y = tmp1.x; tmp2.z = tmp1.y;
+			cpzxy = XMLoadFloat4(&tmp2);
+			mask = XMVectorMultiply(cp, XMVectorSubtract(one, cpzxy));
+
+			grid += XMVectorMultiply(grid_step, mask);
+			ratio += XMVectorMultiply(ratio_step, mask);
+		}
+		if (hit)
+		{
+
+			XMFLOAT4 result;
+			result = tmp1; //所在方块
+			if (i == 0)
+			{
+				//这是在方块内部的情况
+				result.w = -1;
+				return result;
+			}
+			XMVECTOR ftmp;
+			ftmp = XMVectorSubtract(ratio, XMVectorMultiply(ratio_step,mask));
+			ftmp = XMVectorAdd(XMVectorScale(dir, XMVectorGetX(DirectX::XMVector3Dot(ftmp, mask))),XMLoadFloat4(&(src.p1)));
+			XMStoreFloat4(&tmp1, ftmp);
+			//需要全部反过来,因为上面的式子没有取反
+			
+			result = tmp1;
+			result.w = 0;
+			return result;
+		}
+		else
+		{
+			float tx, ty, tz;
+			tz = 0;
+			ty = (tz - src.p1.z)*src.n.y / src.n.z + src.p1.y;
+			tx = (tz - src.p1.z)*src.n.x / src.n.z + src.p1.x;
+			if (ty >= 0 && ty <= (map->GetY()) && tx >= 0 && tx <= (map->GetX()))
+			{
+				return XMFLOAT4(tx, ty, -1, 0);
+			}
+		}
+		//上面成功的进行了判断,可以得出grid编号了,不过还要算一下相交面(
+		{
+			XMFLOAT4 result;
+			XMVECTOR ftmp;
+			ftmp = XMVectorSubtract(ratio, XMVectorMultiply(ratio_step, mask));
+			ftmp = XMVectorScale(dir, XMVectorGetX(DirectX::XMVector3Dot(ftmp, mask)));
+			XMStoreFloat4(&tmp1, ftmp);
+			//需要全部反过来,因为上面的式子没有取反
+
+			result = tmp1;
+			return result;
+		}
+		//return XMFLOAT4(-1, -1, -1, -1);
 	}
 
 	DirectX::XMFLOAT4 Scene::TestCollisoin(const LineFunc& src)
@@ -960,7 +1283,7 @@ namespace Nyan
 				//法向量为0,0,1,下方
 				result.w = Direction::Down;
 			}
-			{
+			if(false){
 				wchar_t test[128];
 				XMINT3 n(-tmp1.x, -tmp1.y, -tmp1.z);
 				XMINT3 dir(result.x,result.y,result.z);

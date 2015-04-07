@@ -70,6 +70,7 @@ float tdy = -1;
 float tdz = -1;
 float lightdist = 50;
 bool lock = false;
+DirectX::XMFLOAT4 LightConeDir;
 #endif
 int mode = 0;
 Nyan::TimerManage Tim;
@@ -145,8 +146,10 @@ HRESULT Render(double fTime, float fElapsedTime, void* /*pUserContext*/)
 	//NNN::Device::DeviceContext::IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	class NNN::Shader::c_Effect *effect = g_effect;
-	float light_dir[] = { ddx, ddy, ddz, lightdist };
+	float light_dir[] = { ddx, ddy, ddz+1, lightdist };
+	float lightcone_dir[] = { ddx - LightConeDir.x, ddy - LightConeDir.y, ddz +1 - LightConeDir.z, 1.15f };
 	effect->SetFloatVector("g_Light", light_dir, 4);
+	effect->SetFloatVector("g_LightDir", lightcone_dir, 4);
 
 
 
@@ -249,21 +252,33 @@ void ResetMap()
 }
 
 
+
 void Init_Effect()
 {
 	NNN::Shader::c_Effect::s_init_param_info param_info_vs[] =
 	{
 		{ { "g_mWVP", NNN::Buffer::s_ConstantBuffer::es_ParamType::Matrix, 1, 0 }, 0 },
-		{ { "g_Light", NNN::Buffer::s_ConstantBuffer::es_ParamType::Vector, 1, 64 }, 0 },
+		//{ { "g_Light", NNN::Buffer::s_ConstantBuffer::es_ParamType::Vector, 1, 64 }, 0 },
 	};
+
 	std::vector<struct NNN::Shader::c_Effect::s_init_param_info> params_vs;
 	for (int i = 0; i < _countof(param_info_vs); ++i)
 		params_vs.push_back(param_info_vs[i]);
 
+	NNN::Shader::c_Effect::s_init_param_info param_info_ps[] =
+	{
+		{ { "g_LightDir", NNN::Buffer::s_ConstantBuffer::es_ParamType::Vector, 1, 0 }, 0 },
+		{ { "g_Light", NNN::Buffer::s_ConstantBuffer::es_ParamType::Vector, 1, 16 }, 0 },
+	};
+
+	std::vector<struct NNN::Shader::c_Effect::s_init_param_info> params_ps;
+	for (int i = 0; i < _countof(param_info_ps); ++i)
+		params_ps.push_back(param_info_ps[i]);
+
 	const WCHAR k_EFFECT_NAME[] = L"DefaultTech";
 	NNN::Shader::Add_Effect_DX11(k_EFFECT_NAME,
 		L"Shaders/dx11.vs.hlslo", &params_vs,
-		L"Shaders/dx11.ps.hlslo", nullptr);
+		L"Shaders/dx11.ps.hlslo", &params_ps);
 	g_effect = NNN::Shader::Find_Effect(k_EFFECT_NAME);
 
 	g_layout = new struct NNN::Shader::s_InputLayout();
@@ -943,12 +958,18 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 
 		DirectX::XMFLOAT4 ori, dir;
 		DirectX::XMStoreFloat4(&ori, m_mouse);
-		DirectX::XMStoreFloat4(&dir, DirectX::XMVector4Normalize(m_mouse1));
+		DirectX::XMStoreFloat4(&dir, m_mouse1);
 		//ResetMap();
 		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
+		DirectX::XMFLOAT4&& tmpdir = inst->GetIntersect(Nyan::LineFunc(ori, dir));
+		if (tmpdir.w != -1)
+		{
+			LightConeDir = tmpdir;
+		}
 		rect->SetRectLocation(-1, -1, -1, -1);
 		if (result.x != -1)
 		{
+			
 			rect->SetRectLocation(result.x,result.y,result.z,result.w);
 			//inst->GetMap()->SetBlock(result.x, result.y, result.z, 2);
 		}
