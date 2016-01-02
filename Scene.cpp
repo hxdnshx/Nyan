@@ -927,7 +927,7 @@ namespace Nyan
 		NNN::State::SetSamplerState(g_sampler_state, 0, 0, m_pak.GetPackTexture());
 		effect->SetResource("g_Texture", m_pak.GetPackTexture(),0);
 	
-		NNN::Device::DeviceContext::SetEffect(effect, NNN_SHADER_LIBS_TEXTURE_COLORTEXTURE_DX9_TECH_NAME);
+		NNN::Device::DeviceContext::SetEffect(effect);
 
 		//NNN::Device::DeviceContext::Draw(4);
 

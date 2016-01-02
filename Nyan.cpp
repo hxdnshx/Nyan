@@ -439,7 +439,7 @@ void OnCreate_func(void* /*pUserContext*/)
 
 
 
-	ChangeSize(NNN::Misc::GetClientWidth(), NNN::Misc::GetClientHeight());
+	ChangeSize(NNN::Misc::GetClientSize().cx, NNN::Misc::GetClientSize().cy);
 
 	Init_RenderState();
 	Init_SamplerState();
@@ -491,7 +491,7 @@ void OnLost_dx9(void* /*pUserContext*/)
 void ChangeSize(UINT width, UINT height)
 {
 	if (width > 0 && height > 0)
-		g_Projection = NNN::Misc::GetPerspectiveFovLH((int)width, (int)height);
+		g_Projection = NNN::Misc::GetPerspectiveLH((int)width, (int)height);;
 }
 
 
@@ -559,9 +559,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 	{
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-			(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+			(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize().cx - 1) /
 			g_Projection.r[0].m128_f32[0],
-			-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+			-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientSize().cy - 1) /
 			g_Projection.r[1].m128_f32[1], 1, 0);
 		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
@@ -637,9 +637,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 			{
 				DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 				DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize().cx - 1) /
 					g_Projection.r[0].m128_f32[0],
-					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientSize().cy - 1) /
 					g_Projection.r[1].m128_f32[1], 1, 0);
 				DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 				DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
@@ -711,9 +711,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 			{
 				DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
 				DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet((
-					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientWidth(false) - 1) /
+					(float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize().cx - 1) /
 					g_Projection.r[0].m128_f32[0],
-					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientHeight(false) - 1) /
+					-((float)NNN::Input::Mouse::MouseY() * 2 / NNN::Misc::GetClientSize().cy - 1) /
 					g_Projection.r[1].m128_f32[1], 1, 0);
 				DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 				DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
@@ -944,7 +944,7 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 
 	{
 		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
-		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)m_lx * 2 / NNN::Misc::GetClientWidth(false) - 1) / g_Projection.r[0].m128_f32[0], -((float)m_ly * 2 / NNN::Misc::GetClientHeight(false) - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
+		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)m_lx * 2 / NNN::Misc::GetClientSize().cx - 1) / g_Projection.r[0].m128_f32[0], -((float)m_ly * 2 / NNN::Misc::GetClientSize().cy - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
 		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
 		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
 		DirectX::XMMATRIX rotinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixRotationX(-0.5 * 3.141592));
@@ -1051,7 +1051,7 @@ void CALLBACK main_func()
 	WCHAR *file_list[] =
 	{
 		L"nnnEngine.whp",
-		L"Nyan.whp",
+		//L"Nyan.whp",
 	};
 
 	std::vector<std::wstring> packet_list;
