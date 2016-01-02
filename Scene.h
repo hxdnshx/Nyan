@@ -46,7 +46,7 @@ namespace Nyan{
 		int m_vremain;
 		//用于存储每个体素(伪)渲染的内容在缓存中的位置
 		//但是如果是为了实际渲染应该储存index而不是vertex啊- -
-		std::hash_map<int,int> m_offset;
+		std::map<int,int> m_offset;
 		Minimal::MinimalArrayT< Minimal::ProcessHeapStringW > m_Texture;
 		NNN::Texture::c_PackTexture m_pak;
 		

@@ -1295,7 +1295,7 @@ namespace Nyan
 		else
 		{
 			float tx, ty, tz;
-			tz = 0;
+		tz = 0;
 			ty = (tz - src.p1.z)*src.n.y / src.n.z + src.p1.y;
 			tx = (tz - src.p1.z)*src.n.x / src.n.z + src.p1.x;
 			if (ty >= 0 && ty <= (map->GetY()) && tx >= 0 && tx <= (map->GetX()))

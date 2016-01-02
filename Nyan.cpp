@@ -19,12 +19,15 @@
 
 #include "Nyan.h"
 #include <TCHAR.h>
-
+#include "Scene2RayAdapter.h"
 #include "Scene.h"
 #include"Map.h"
 #include "Line.h"
 #include "SelectRect.h"
 #include "TimerSys.h"
+#include ".\..\..\3rdParty\LibPNG\Src\png.h"
+
+#define ImgFormat png_byte
 
 
 # define FastHack
@@ -71,6 +74,7 @@ float tdz = -1;
 float lightdist = 50;
 bool lock = false;
 DirectX::XMFLOAT4 LightConeDir;
+Nyan::Scene2RayAdapter *Adapter;
 #endif
 int mode = 0;
 Nyan::TimerManage Tim;
@@ -528,6 +532,8 @@ void OnCreate_func(void* /*pUserContext*/)
 	rect->SetUV(inst->GetPiece(ctex)->m_min_u, inst->GetPiece(ctex)->m_max_u, inst->GetPiece(ctex)->m_min_v, inst->GetPiece(ctex)->m_max_v);
 	Init_Buffer();
 	Buffer_FillData();
+
+	Adapter = new Nyan::Scene2RayAdapter(inst);
 	
 	//g_View = NNN::Misc::GetOrthoView();
 	
@@ -597,6 +603,123 @@ void ChangeSize(UINT width, UINT height)
 {
 	if (width > 0 && height > 0)
 		g_Projection = NNN::Misc::GetPerspectiveLH((int)width, (int)height);
+}
+
+int WriteToPNG_Gray(TCHAR* Filepath, ImgFormat** Info, int width, int height)
+{
+	FILE *fp;
+	png_structp png_ptr;
+	png_infop info_ptr;
+
+	if ((_tfopen_s(&fp, Filepath, _T("wb"))) != 0)
+	{
+		return 1;
+	}
+	png_ptr = png_create_write_struct(
+		PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	info_ptr = png_create_info_struct(png_ptr);
+	png_init_io(png_ptr, fp);
+	png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	png_write_info(png_ptr, info_ptr);
+	png_write_image(png_ptr, Info);
+	png_write_end(png_ptr, info_ptr);
+	png_destroy_write_struct(&png_ptr, &info_ptr);
+	fclose(fp);
+	return 0;
+}
+
+int WriteToPNG_Color(TCHAR* Filepath, ImgFormat** Info, int width, int height)
+{
+	FILE *fp;
+	png_structp png_ptr;
+	png_infop info_ptr;
+
+	if ((_tfopen_s(&fp, Filepath, _T("wb"))) != 0)
+	{
+		return 1;
+	}
+	png_ptr = png_create_write_struct(
+		PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	info_ptr = png_create_info_struct(png_ptr);
+	png_init_io(png_ptr, fp);
+	png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	png_write_info(png_ptr, info_ptr);
+	png_write_image(png_ptr, Info);
+	png_write_end(png_ptr, info_ptr);
+	png_destroy_write_struct(&png_ptr, &info_ptr);
+	fclose(fp);
+	return 0;
+}
+
+
+#define Info_Resolution_X 600
+#define Info_Resolution_Y 600
+
+void BuildRayTracePic()
+{
+	ImgFormat** pointer;
+	ImgFormat** pointer2;
+	//Solution Info_Resolution_X*Info_Resolution_Y
+	pointer = new ImgFormat*[Info_Resolution_X];
+	pointer2 = new ImgFormat*[Info_Resolution_X];
+	for (int i = 0; i < Info_Resolution_X; ++i)
+	{
+		pointer[i] = new ImgFormat[Info_Resolution_Y*3];
+		pointer2[i] = new ImgFormat[Info_Resolution_Y];
+		memset(pointer[i], 0, sizeof(ImgFormat)*Info_Resolution_Y*3);
+		memset(pointer2[i], 0, sizeof(ImgFormat)*Info_Resolution_Y);
+	}
+	XMFLOAT4 eyept;
+	XMFLOAT4 dir;
+	XMFLOAT4 up;
+
+	up.x = 1;
+	up.y = up.z = 0;
+	Nyan::LineFunc *func;
+	{
+		DirectX::XMVECTOR m_mouse = DirectX::XMVectorSet(0, 0, 0, 1);
+		DirectX::XMVECTOR m_mouse1 = DirectX::XMVectorSet(((float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize(false).cx - 1) / g_Projection.r[0].m128_f32[0], 
+			-((float)NNN::Input::Mouse::MouseX() * 2 / NNN::Misc::GetClientSize(false).cy - 1) / g_Projection.r[1].m128_f32[1], 1, 0);
+		DirectX::XMMATRIX viewinv = DirectX::XMMatrixInverse(nullptr, g_cam.GetViewMatrix());
+		DirectX::XMMATRIX worinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixTranslation(0, 0, 0));
+		DirectX::XMMATRIX rotinv = DirectX::XMMatrixInverse(nullptr, DirectX::XMMatrixRotationX(-0.5 * 3.141592));
+
+		m_mouse = DirectX::XMVector4Transform(m_mouse, viewinv);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, rotinv);
+		m_mouse = DirectX::XMVector4Transform(m_mouse, worinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, viewinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, rotinv);
+		m_mouse1 = DirectX::XMVector4Transform(m_mouse1, worinv);
+
+		DirectX::XMFLOAT4 ori, dir;
+		DirectX::XMStoreFloat4(&ori, m_mouse);
+		DirectX::XMStoreFloat4(&dir, m_mouse1);
+		func =new  Nyan::LineFunc(ori, dir);
+	}
+	struct dat
+	{
+		ImgFormat** a;
+		ImgFormat** b;
+	};
+	dat picinfo;
+	picinfo.a = pointer;
+	picinfo.b = pointer2;
+	//int result = WriteToPNG_Color(_T("RayResult.png"), pointer, Info_Resolution_X, Info_Resolution_Y);
+	//XMStoreFloat4(&dir, XMVector4Transform(XMVector3Normalize(XMVectorSubtract(g_cam.GetLookAtPt(), g_cam.GetEyePt())), DirectX::XMMatrixRotationX(0.5*3.141592)));
+	//XMStoreFloat4(&eyept, XMVector4Transform(g_cam.GetEyePt(),DirectX::XMMatrixRotationX(0.5*3.141592)));
+	(*Adapter)().GenerateRaytraceResult(Info_Resolution_X, Info_Resolution_Y, 0.0005, func->p1, 4, 4000, func->n, up,
+		[](int x,int y,const int&TexType,const XMFLOAT4& loc,const XMFLOAT4& rn,const float&depth,void *arg)
+	{
+		ImgFormat** p = (ImgFormat**)arg;
+		((dat*)arg)->a[x][y * 3] = (rn.x+1)*127;
+		((dat*)arg)->a[x][y * 3 + 1] = (rn.y + 1) * 127;
+		((dat*)arg)->a[x][y * 3 + 2] = (rn.z + 1) * 127;
+		((dat*)arg)->b[x][y] = (depth < 254 ? depth : 254) + 1;
+	}, &picinfo);
+	WriteToPNG_Color(_T("RayResult.png"), pointer, Info_Resolution_X, Info_Resolution_Y);
+	WriteToPNG_Gray(_T("RayResult_depth.png"), pointer2, Info_Resolution_X, Info_Resolution_Y);
 }
 
 
@@ -728,6 +851,11 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool /*bAltDown*/, void* /*p
 					//此处有内存泄漏,泄漏一个int,之后再进行修正
 			*/
 		}
+	}
+	if (nChar == 'Z' || nChar == 'z')
+	{
+		//Build Raytrace Image
+		BuildRayTracePic();
 	}
 	if (nChar == 'Q' || nChar == 'q')
 	{
@@ -1065,17 +1193,23 @@ void CALLBACK OnFrameMove( double /*fTime*/, float /*fElapsedTime*/, void* /*pUs
 		DirectX::XMStoreFloat4(&ori, m_mouse);
 		DirectX::XMStoreFloat4(&dir, m_mouse1);
 		//ResetMap();
-		DirectX::XMFLOAT4 result = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
-		DirectX::XMFLOAT4&& tmpdir = inst->GetIntersect(Nyan::LineFunc(ori, dir));
-		if (tmpdir.w != -1)
+		Nyan::LineFunc line(ori, dir);
+		DirectX::XMVECTOR re;
+		DirectX::XMVECTOR rn;
+		float depth;
+		DirectX::XMFLOAT4 result;// = inst->TestCollisoin(Nyan::LineFunc(ori, dir));
+		//DirectX::XMFLOAT4 tmpdir;// = inst->GetIntersect(Nyan::LineFunc(ori, dir));
+		if ((*Adapter)().CalcIntersect(DirectX::XMLoadFloat4(&line.p1), DirectX::XMLoadFloat4(&line.n), &rn, &re, &depth))
 		{
-			LightConeDir = tmpdir;
+			DirectX::XMStoreFloat4(&result, re);
+			LightConeDir = result;
 		}
+		DirectX::XMStoreFloat4(&result, re);
 		rect->SetRectLocation(-1, -1, -1, -1);
-		if (result.x != -1)
+		if (result.x >= 0)
 		{
 			
-			rect->SetRectLocation(result.x,result.y,result.z,result.w);
+			rect->SetRectLocation(floor(result.x),floor(result.y),floor(result.z),(*Adapter)().n2Dir(rn));
 			//inst->GetMap()->SetBlock(result.x, result.y, result.z, 2);
 		}
 		//inst->GetMap()->CalcMask();
